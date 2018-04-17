@@ -14,7 +14,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.apache.commons" % "commons-math3" % "3.6.1",
+  "com.joptimizer" % "joptimizer" % "4.0.0",
   "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
 
