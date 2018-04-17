@@ -26,23 +26,29 @@ package object snowball {
     import com.joptimizer.optimizers.JOptimizer
 
     // solution space is dimension n; in this example n = 2
-    // P is n X n
+    // matrix P is n X n
     val P = Array(
       Array(1.0, 0.4),
       Array(0.4, 1.0)
     )
+    // vector q is length n
     val q = Array(0.0, 0.0)
+    // r is a scalar
     val r = 0.0
+    // My P is positive definite but I'm testing if it will take positive semi-def
     val objective = new PSDQuadraticMultivariateRealFunction(P, q, r)
 
     // A is k X n, where k is number of equalities. Here k = 1
     // vector b has dimension k
+    // conceptually, setting up a matrix equation Ax = b
     // This constraint corresponds to x[0] + x[1] = 1
     val A = Array(Array(1.0, 1.0))
     val b = Array(1.0)
 
     // Convex inequalities. These are typical linear inequalities.
-    // Corresponds to x[0] >= 0.6, x[1] >= 0
+    // Each linear inequality corresponds to form: c.x <= t , where c is
+    // a vector of length n and t is a scalar threshold
+    // The following corresponds to x[0] >= 0.6, x[1] >= 0
     val ineq: Array[ConvexMultivariateRealFunction] = Array(
       new LinearMultivariateRealFunction(Array(-1.0, 0.0), 0.6),
       new LinearMultivariateRealFunction(Array(0.0, -1.0), 0.0)
