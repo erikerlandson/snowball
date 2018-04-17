@@ -67,6 +67,7 @@ package object snowball {
     oreq.setToleranceFeas(1e-12)
     oreq.setTolerance(1e-12)
 
+    // given the problem definition above, this should return x = [0.6, 0.4]
     def run = {
       val opt = new JOptimizer()
       opt.setOptimizationRequest(oreq)
