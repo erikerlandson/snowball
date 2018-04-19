@@ -141,7 +141,27 @@ object infra {
     val lambdaQ = R.scalarMultiply(spec.lambda * math.pow(spec.alpha, 3)) // Eq(15) & Eq(22)
     val W = new DiagonalMatrix(spec.w, false)
     val G = lambdaQ.add(B.multiply(W).multiply(BT)) // Eq(15)
-    val g = B.multiply(W).operate(spec.d) // Eq(16)
+    val g = B.multiply(W).operate(spec.d) // Eq(16); 'operate' method is "multiply by vector"
     (G, g, r)
+  }
+
+  def qpMonotoneConstraints(spec: MonotoneSplineSpec) = {
+    // negative of Eq(64), because JOptimizer expects constraints of form Hx <= 0 instead of Hx >= 0
+    val Fm3 = Array(1.0, 0.0, -1.0,  0.0)
+    val Fm2 = Array(1.0, 2.0, -3.0,  0.0)
+    val Fm1 = Array(0.0, 1.0,  0.0, -1.0)
+    val Fm0 = Array(0.0, 3.0, -2.0, -1.0)
+
+    // apply constraints over the interpolation interval (starting at knot interval [t0, t1])
+    // Eq(66), replicated for each interval starting at t0, t1, ... t(m-1)
+    val H = scala.collection.mutable.ArrayBuffer.empty[Array[Double]]
+    for { j <- 0 until spec.m } {
+      H += Array.fill(j)(0.0) ++ Fm3 ++ Array.fill(spec.mm - (j + 4))(0.0)
+      H += Array.fill(j)(0.0) ++ Fm2 ++ Array.fill(spec.mm - (j + 4))(0.0)
+      H += Array.fill(j)(0.0) ++ Fm1 ++ Array.fill(spec.mm - (j + 4))(0.0)
+      H += Array.fill(j)(0.0) ++ Fm0 ++ Array.fill(spec.mm - (j + 4))(0.0)
+    }
+
+    (H.toArray, Array.fill(H.length)(0.0))
   }
 }
