@@ -17,6 +17,34 @@ limitations under the License.
 package com.manyangled
 
 package object snowball {
+
+  import infra.MonotoneSplineSpec
+
+  object MonotoneSplineSetup {
+    def apply(
+      data: Seq[(Double, Double)],
+      m: Int,
+      bounds: Option[(Double, Double)] = None,
+      lambda: Option[Double] = None,
+      w: Option[Seq[Double]] = None
+    ): MonotoneSplineSpec = {
+      require(m >= 4)
+      require(data.length >= m)
+      val u = data.map(_._1).toArray
+      val d = data.map(_._2).toArray
+      val ll = lambda.getOrElse(1.0)
+      require(ll > 0.0)
+      val (umin, umax) = bounds.getOrElse((u.min, u.max))
+      require(umin < umax)
+      val ww = w.map(_.toArray).getOrElse(Array.fill(u.length)(1.0))
+      require(ww.length == u.length)
+      require(ww.forall(_ > 0.0))
+      val alpha = m.toDouble / (umax - umin)
+      val tk = (-3 to (m - 1)).toArray.map { j => umin + (j.toDouble / alpha) }
+      MonotoneSplineSpec(u, d, m, umin, umax, ll, ww, tk, alpha)
+    }
+  }
+
   object testJO {
     import com.joptimizer.functions.PDQuadraticMultivariateRealFunction
     import com.joptimizer.functions.PSDQuadraticMultivariateRealFunction

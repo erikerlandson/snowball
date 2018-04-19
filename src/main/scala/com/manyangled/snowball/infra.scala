@@ -41,6 +41,20 @@ object infra {
   // lambda: smoothing weight parameter; larger --> smoother, i.e. lower curvature
   // tau: vector of control points.  tau(i) is ith control point.
 
+  case class MonotoneSplineSpec(
+    u: Array[Double],
+    d: Array[Double],
+    m: Int,
+    umin: Double,
+    umax: Double,
+    lambda: Double,
+    w: Array[Double],
+    tk: Array[Double],
+    alpha: Double
+  ) {
+    def mm = m + 3
+  }
+
   // returns matrix Rinf Eq(26) for size MxM, where M = mm
   def matrixRinf(mm: Int): Array[Array[Double]] = {
     // unsure if this is hard minimum but makes logic safe for now
@@ -116,12 +130,18 @@ object infra {
   }
 
   import org.apache.commons.math3.linear.Array2DRowRealMatrix
+  import org.apache.commons.math3.linear.DiagonalMatrix
 
-/*
   // constructs G, g and r from Eq(14) and Eq(68)
-  def qpObjectiveMatrices() = {
-    val r = 0.0  // per Eq(68)
-    (r)
+  def qpObjectiveMatrices(spec: MonotoneSplineSpec) = {
+    val r = 0.0  // per Eq(68) - constant does not change location of minimum
+    val BT = new Array2DRowRealMatrix(matrixBT(spec.alpha, spec.tk)(spec.u), false)
+    val B = BT.transpose()
+    val R = new Array2DRowRealMatrix(matrixR(spec.mm), false)
+    val lambdaQ = R.scalarMultiply(spec.lambda * math.pow(spec.alpha, 3)) // Eq(15) & Eq(22)
+    val W = new DiagonalMatrix(spec.w, false)
+    val G = lambdaQ.add(B.multiply(W).multiply(BT)) // Eq(15)
+    val g = B.multiply(W).operate(spec.d) // Eq(16)
+    (G, g, r)
   }
-*/
 }
