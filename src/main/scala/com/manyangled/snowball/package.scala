@@ -18,6 +18,13 @@ package com.manyangled
 
 package object snowball {
 
+  implicit class AAShow(m: Array[Array[Double]]) {
+    def show = m.map(_.mkString(", ")).mkString("\n")
+  }
+  implicit class AShow(v: Array[Double]) {
+    def show = v.mkString(", ")
+  }
+
   import infra.MonotoneSplineSpec
 
   object MonotoneSplineSetup {
@@ -43,6 +50,12 @@ package object snowball {
       val tk = (-3 to (m - 1)).toArray.map { j => umin + (j.toDouble / alpha) }
       MonotoneSplineSpec(u, d, m, umin, umax, ll, ww, tk, alpha)
     }
+  }
+
+  object test {
+    val data = Vector(
+      (0.0, 0.0), (1.0, 0.1), (2.0, 0.4), (3.0, 0.5), (4.0, 0.6), (5.0, 0.9), (6.0, 1.0)
+    )
   }
 
   object testJO {
