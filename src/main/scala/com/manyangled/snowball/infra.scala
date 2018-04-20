@@ -16,6 +16,13 @@ limitations under the License.
 
 package com.manyangled.snowball
 
+import com.joptimizer.functions.PDQuadraticMultivariateRealFunction
+import com.joptimizer.functions.PSDQuadraticMultivariateRealFunction
+import com.joptimizer.functions.ConvexMultivariateRealFunction
+import com.joptimizer.functions.LinearMultivariateRealFunction
+import com.joptimizer.optimizers.OptimizationRequest
+import com.joptimizer.optimizers.JOptimizer
+
 /**
  * Implements various components from:
  *
@@ -53,6 +60,27 @@ object infra {
     alpha: Double
   ) {
     def mm = m + 3
+
+    def solve = infra.solve(this)
+  }
+
+  def solve(spec: MonotoneSplineSpec) = {
+    val (gg, g, r) = qpObjectiveMatrices(spec)
+    val objective = new PSDQuadraticMultivariateRealFunction(gg, g, r)
+    val (hh, t) = qpMonotoneConstraints(spec)
+    val ineq: Array[ConvexMultivariateRealFunction] = hh.zip(t).map { case (h, x) =>
+      new LinearMultivariateRealFunction(h, x)
+    }
+    val oreq = new OptimizationRequest()
+    oreq.setInitialPoint(Array.fill(spec.mm)(0.0))
+    oreq.setF0(objective)
+    oreq.setFi(ineq)
+    oreq.setToleranceFeas(1e-10)
+    oreq.setTolerance(1e-10)
+    val opt = new JOptimizer
+    opt.setOptimizationRequest(oreq)
+    opt.optimize()
+    opt.getOptimizationResponse().getSolution()
   }
 
   // returns matrix Rinf Eq(26) for size MxM, where M = mm
@@ -142,7 +170,7 @@ object infra {
     val W = new DiagonalMatrix(spec.w, false)
     val G = lambdaQ.add(B.multiply(W).multiply(BT)) // Eq(15)
     val g = B.multiply(W).operate(spec.d) // Eq(16); 'operate' method is "multiply by vector"
-    (G, g, r)
+    (G.getData(), g, r)
   }
 
   def qpMonotoneConstraints(spec: MonotoneSplineSpec) = {
