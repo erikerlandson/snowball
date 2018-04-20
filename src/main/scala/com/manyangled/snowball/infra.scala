@@ -23,6 +23,9 @@ import com.joptimizer.functions.LinearMultivariateRealFunction
 import com.joptimizer.optimizers.OptimizationRequest
 import com.joptimizer.optimizers.JOptimizer
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix
+import org.apache.commons.math3.linear.DiagonalMatrix
+
 /**
  * Implements various components from:
  *
@@ -66,7 +69,12 @@ object infra {
 
   def solve(spec: MonotoneSplineSpec) = {
     val (gg, g, r) = qpObjectiveMatrices(spec)
-    val objective = new PSDQuadraticMultivariateRealFunction(gg, g, r)
+    // Matrix G (aka gg) is basically positive semi-def, and JOptimizer appears to choke if G isn't full rank.
+    // Adding 1 along the diagonal restores full rank, and also is equivalently
+    // adding (tau.tau) to the cost function, so is effectively requesting "smallest solution" from
+    // the underdetermined original matrix.
+    for { j <- 0 until gg.length } { gg(j)(j) += 1.0 }
+    val objective = new PDQuadraticMultivariateRealFunction(gg, g, r)
     val (hh, t) = qpMonotoneConstraints(spec)
     val ineq: Array[ConvexMultivariateRealFunction] = hh.zip(t).map { case (h, x) =>
       new LinearMultivariateRealFunction(h, x)
@@ -74,7 +82,9 @@ object infra {
     val oreq = new OptimizationRequest()
     oreq.setInitialPoint(Array.fill(spec.mm)(0.0))
     oreq.setF0(objective)
-    oreq.setFi(ineq)
+    // I need a way to figure out a strictly interior point on the feasible region.
+    // Thanks, JOptizer.
+    //oreq.setFi(ineq)
     oreq.setToleranceFeas(1e-10)
     oreq.setTolerance(1e-10)
     val opt = new JOptimizer
@@ -156,9 +166,6 @@ object infra {
     val b = vectorb(alpha, tk)(_)
     u.map(b)
   }
-
-  import org.apache.commons.math3.linear.Array2DRowRealMatrix
-  import org.apache.commons.math3.linear.DiagonalMatrix
 
   // constructs G, g and r from Eq(14) and Eq(68)
   def qpObjectiveMatrices(spec: MonotoneSplineSpec) = {
