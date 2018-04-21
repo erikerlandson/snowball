@@ -79,18 +79,41 @@ object infra {
     val ineq: Array[ConvexMultivariateRealFunction] = hh.zip(t).map { case (h, x) =>
       new LinearMultivariateRealFunction(h, x)
     }
+    // JOptimizer requires an initial guess that is strictly interior to the constraints
+    val ip = interiorPoint(ineq)
     val oreq = new OptimizationRequest()
-    oreq.setInitialPoint(Array.fill(spec.mm)(0.0))
+    oreq.setInitialPoint(ip)
     oreq.setF0(objective)
-    // I need a way to figure out a strictly interior point on the feasible region.
-    // Thanks, JOptizer.
-    //oreq.setFi(ineq)
+    oreq.setFi(ineq)
     oreq.setToleranceFeas(1e-10)
     oreq.setTolerance(1e-10)
     val opt = new JOptimizer
     opt.setOptimizationRequest(oreq)
     opt.optimize()
     opt.getOptimizationResponse().getSolution()
+  }
+
+  // This is what I've come to; generate and test.
+  def interiorPoint(ineq: Array[ConvexMultivariateRealFunction], maxTries: Int = 1000000): Array[Double] = {
+    var found = false
+    var tries = 0
+    var ip: Array[Double] = null
+    val m = ineq(0).asInstanceOf[LinearMultivariateRealFunction].getQ().size().toInt
+    while (!found) {
+      tries += 1
+      if (tries > maxTries) {
+        throw new Exception(s"interiorPoint failed after $maxTries attempts")
+      }
+      val t = Array.fill(m) { scala.util.Random.nextDouble() }
+      val v = new cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D(t)
+      val sat = ineq.forall { q => q.value(v) < 0.0 }
+      if (sat) {
+        println(s"found interior point after $tries attempts")
+        ip = t
+        found = true
+      }
+    }
+    ip
   }
 
   // returns matrix Rinf Eq(26) for size MxM, where M = mm
