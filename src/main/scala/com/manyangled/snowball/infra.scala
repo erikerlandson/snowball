@@ -64,10 +64,20 @@ object infra {
   ) {
     def mm = m + 3
 
-    def solve = infra.solve(this)
+    def solveCP = infra.solveCP(this)
+    def solve = {
+      val tau = this.solveCP
+      (t: Double) => {
+        var x = 0.0
+        for { j <- 0 until this.mm } {
+          x +=  tau(j) * b3(this.alpha * (t - this.tk(j)))
+        }
+        x
+      }
+    }
   }
 
-  def solve(spec: MonotoneSplineSpec) = {
+  def solveCP(spec: MonotoneSplineSpec) = {
     val (gg, g, r) = qpObjectiveMatrices(spec)
     // Matrix G (aka gg) is basically positive semi-def, and JOptimizer appears to choke if G isn't full rank.
     // Adding 1 along the diagonal restores full rank, and also is equivalently
@@ -108,7 +118,7 @@ object infra {
       val v = new cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D(t)
       val sat = ineq.forall { q => q.value(v) < 0.0 }
       if (sat) {
-        println(s"found interior point after $tries attempts")
+        println(s"found interior point after $tries attempts: ${t.show}")
         ip = t
         found = true
       }
