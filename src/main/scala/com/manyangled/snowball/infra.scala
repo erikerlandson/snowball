@@ -83,7 +83,7 @@ object infra {
     // Adding 1 along the diagonal restores full rank, and also is equivalently
     // adding (tau.tau) to the cost function, so is effectively requesting "smallest solution" from
     // the underdetermined original matrix.
-    for { j <- 0 until gg.length } { gg(j)(j) += 1.0 }
+    //for { j <- 0 until gg.length } { gg(j)(j) += 1.0 }
     val objective = new PDQuadraticMultivariateRealFunction(gg, g, r)
     val (hh, t) = qpMonotoneConstraints(spec)
     val ineq: Array[ConvexMultivariateRealFunction] = hh.zip(t).map { case (h, x) =>
@@ -176,14 +176,19 @@ object infra {
     r
   }
 
-  // basis B3(t) from Eq(3) and Table 1
-  // Here, t is treated as normalized to unit distance between knot points
-  def b3(t: Double) = t match {
+  // Table 1 from the paper
+  def n03(t: Double) = math.pow(1.0 - t, 3) / 6.0
+  def n13(t: Double) = (4.0 - (6.0 * t * t) + (3.0 * math.pow(t, 3))) / 6.0
+  def n23(t: Double) = (1.0 + (3.0 * t) + (3.0 * t * t) - (3.0 * math.pow(t, 3))) / 6.0
+  def n33(t: Double) = math.pow(t, 3) / 6.0
+
+  // basis B3(t) from Eq(3)
+  def b3(tt: Double) = tt match {
     case t if t < 0.0 => 0.0
-    case t if t < 1 => math.pow(1.0 - t, 3) / 6.0
-    case t if t < 2 => (4.0 - (6.0 * t * t) + (3.0 * math.pow(t, 3))) / 6.0
-    case t if t < 3 => (1.0 + (3.0 * t) + (3.0 * t * t) - (3.0 * math.pow(t, 3))) / 6.0
-    case t if t < 4 => math.pow(t, 3) / 6.0
+    case t if t < 1.0 => n33(t - 0.0)
+    case t if t < 2.0 => n23(t - 1.0)
+    case t if t < 3.0 => n13(t - 2.0)
+    case t if t < 4.0 => n03(t - 3.0)
     case _ => 0.0
   }
 
