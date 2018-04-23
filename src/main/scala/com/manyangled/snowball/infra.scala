@@ -79,11 +79,6 @@ object infra {
 
   def solveCP(spec: MonotoneSplineSpec) = {
     val (gg, g, r) = qpObjectiveMatrices(spec)
-    // Matrix G (aka gg) is basically positive semi-def, and JOptimizer appears to choke if G isn't full rank.
-    // Adding 1 along the diagonal restores full rank, and also is equivalently
-    // adding (tau.tau) to the cost function, so is effectively requesting "smallest solution" from
-    // the underdetermined original matrix.
-    //for { j <- 0 until gg.length } { gg(j)(j) += 1.0 }
     val objective = new PDQuadraticMultivariateRealFunction(gg, g, r)
     val (hh, t) = qpMonotoneConstraints(spec)
     val ineq: Array[ConvexMultivariateRealFunction] = hh.zip(t).map { case (h, x) =>
