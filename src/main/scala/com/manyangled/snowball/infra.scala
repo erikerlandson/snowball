@@ -126,6 +126,9 @@ object infra {
     ip
   }
 
+  def isMonotonic(data: Seq[Double]) =
+    data.sliding(2).forall { case Seq(x, y) => x <= y }
+
   // returns matrix Rinf Eq(26) for size MxM, where M = mm
   def matrixRinf(mm: Int): Array[Array[Double]] = {
     // unsure if this is hard minimum but makes logic safe for now
@@ -207,7 +210,6 @@ object infra {
 
   // constructs G, g and r from Eq(14) and Eq(68)
   def qpObjectiveMatrices(spec: MonotoneSplineSpec) = {
-    val r = 0.0  // per Eq(68) - constant does not change location of minimum
     val BT = new Array2DRowRealMatrix(matrixBT(spec.alpha, spec.tk)(spec.u), false)
     val B = BT.transpose()
     val R = new Array2DRowRealMatrix(matrixR(spec.mm), false)
@@ -215,11 +217,14 @@ object infra {
     val W = new DiagonalMatrix(spec.w, false)
     val G = lambdaQ.add(B.multiply(W).multiply(BT)) // Eq(15)
     val g = B.multiply(W).operate(spec.d) // Eq(16); 'operate' method is "multiply by vector"
+    //val r = 0.0  // per Eq(68) - constant does not change location of minimum
+    val rt = W.operate(spec.d)
+    val r = rt.zip(spec.d).foldLeft(0.0) { case (z, (a, b)) => z + (a * b) }
     (G.getData(), g, r)
   }
 
   def qpMonotoneConstraints(spec: MonotoneSplineSpec) = {
-    // negative of Eq(64), because JOptimizer expects constraints of form Hx <= 0 instead of Hx >= 0
+    // negative of Eq(64), because JOptimizer expects constraints of form Hx < 0 instead of Hx >= 0
     val Fm3 = Array(1.0, 0.0, -1.0,  0.0)
     val Fm2 = Array(1.0, 2.0, -3.0,  0.0)
     val Fm1 = Array(0.0, 1.0,  0.0, -1.0)
