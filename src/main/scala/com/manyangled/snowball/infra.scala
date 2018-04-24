@@ -204,15 +204,20 @@ object infra {
   }
 
   // constructs G, g and r from Eq(14) and Eq(68)
+  // Warning: Eq(68) has a typo: it should be -(tau).(g), not +(tau).(g)
+  // I am specifically using Eq(14), which includes the r term
   def qpObjectiveMatrices(spec: MonotoneSplineSpec) = {
     val BT = new Array2DRowRealMatrix(matrixBT(spec.alpha, spec.tk)(spec.u), false)
     val B = BT.transpose()
     val R = new Array2DRowRealMatrix(matrixR(spec.mm), false)
     val lambdaQ = R.scalarMultiply(spec.lambda * math.pow(spec.alpha, 3)) // Eq(15) & Eq(22)
     val W = new DiagonalMatrix(spec.w, false)
-    val G = lambdaQ.add(B.multiply(W).multiply(BT)) // Eq(15)
-    val g = B.multiply(W).operate(spec.d) // Eq(16); 'operate' method is "multiply by vector"
-    //val r = 0.0  // per Eq(68) - constant does not change location of minimum
+    // Eq(15)
+    val G = lambdaQ.add(B.multiply(W).multiply(BT))
+    // Eq(16); 'operate' method is "multiply by vector"
+    // This adds a (-1) factor for the subtraction from Eq(14)
+    val g = B.multiply(W).operate(spec.d).map(_ * -1.0)
+    // Eq(17)
     val rt = W.operate(spec.d)
     val r = rt.zip(spec.d).foldLeft(0.0) { case (z, (a, b)) => z + (a * b) }
     (G.getData(), g, r)
