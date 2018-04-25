@@ -203,9 +203,9 @@ object infra {
     u.map(b)
   }
 
-  // constructs G, g and r from Eq(14) and Eq(68)
-  // Warning: Eq(68) has a typo: it should be -(tau).(g), not +(tau).(g)
-  // I am specifically using Eq(14), which includes the r term
+  // constructs G, g and r from Eq(14)
+  // Warning: Eq(68) is presented as a generalization but its (tau).(g) term is
+  // positive not negative, and it is missing the (r) term.
   def qpObjectiveMatrices(spec: MonotoneSplineSpec) = {
     val BT = new Array2DRowRealMatrix(matrixBT(spec.alpha, spec.tk)(spec.u), false)
     val B = BT.transpose()
