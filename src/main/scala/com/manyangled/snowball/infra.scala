@@ -25,6 +25,8 @@ import com.joptimizer.optimizers.JOptimizer
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import org.apache.commons.math3.linear.DiagonalMatrix
+import org.apache.commons.math3.distribution.UniformRealDistribution
+import org.apache.commons.math3.distribution.RealDistribution
 
 /**
  * Implements various components from:
@@ -81,11 +83,12 @@ object infra {
     val (gg, g, r) = qpObjectiveMatrices(spec)
     val objective = new PDQuadraticMultivariateRealFunction(gg, g, r)
     val (hh, t) = qpMonotoneConstraints(spec)
+    val (ee, y) = (Array.empty[Array[Double]], Array.empty[Double])
+    // JOptimizer requires an initial guess that is strictly interior to the constraints
+    val ip = interiorPoint(spec.mm, hh, t, ee, y)
     val ineq: Array[ConvexMultivariateRealFunction] = hh.zip(t).map { case (h, x) =>
       new LinearMultivariateRealFunction(h, x)
     }
-    // JOptimizer requires an initial guess that is strictly interior to the constraints
-    val ip = interiorPoint(ineq)
     val oreq = new OptimizationRequest()
     oreq.setInitialPoint(ip)
     oreq.setF0(objective)
@@ -98,20 +101,44 @@ object infra {
     opt.getOptimizationResponse().getSolution()
   }
 
+  def dot(x: Array[Double], y: Array[Double]): Double = {
+    require(x.length == y.length)
+    var d = 0.0
+    for { j <- 0 until x.length } { d += x(j) * y(j) }
+    d
+  }
+
   // This is what I've come to; generate and test.
-  def interiorPoint(ineq: Array[ConvexMultivariateRealFunction], maxTries: Int = 1000000): Array[Double] = {
+  def interiorPoint(m: Int, hh: Array[Array[Double]], x: Array[Double],
+      ee: Array[Array[Double]], y: Array[Double],
+      dist: RealDistribution = new UniformRealDistribution(0.0, 1.0),
+      tol: Double = 1e-10,
+      maxTries: Int = 1000000): Array[Double] = {
+    require(hh.length == x.length)
+    require(hh.forall(_.length == m))
+    require(ee.length == y.length)
+    require(ee.forall(_.length == m))
     var found = false
     var tries = 0
     var ip: Array[Double] = null
-    val m = ineq(0).asInstanceOf[LinearMultivariateRealFunction].getQ().size().toInt
+    // heuristic: sorted by increasing order of number of nonzero coefficients,
+    // and within that index of last coefficient
+    val eeP = (0 until ee.length).sortWith { case (ja, jb) =>
+      val (nza, nzb) = (ee(ja).count(_ != 0.0), ee(ja).count(_ != 0.0))
+      if (nza != nzb) {
+        nza < nzb
+      } else {
+        val (nzaj, nzbj) = (ee(ja).lastIndexWhere(_ != 0.0), ee(jb).lastIndexWhere(_ != 0.0))
+        nzaj < nzbj
+      }
+    }.toArray
     while (!found) {
       tries += 1
       if (tries > maxTries) {
         throw new Exception(s"interiorPoint failed after $maxTries attempts")
       }
-      val t = Array.fill(m) { scala.util.Random.nextDouble() }
-      val v = new cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D(t)
-      val sat = ineq.forall { q => q.value(v) < 0.0 }
+      val t = equalityConstrainedRandom(m, ee, y, eeP, dist, tol)
+      val sat = (0 until hh.length).forall { j => dot(hh(j), t) < x(j) }
       if (sat) {
         println(s"found interior point after $tries attempts: ${t.show}")
         ip = t
@@ -119,6 +146,61 @@ object infra {
       }
     }
     ip
+  }
+
+  val emptyFlag = Double.MinValue
+
+  def dotw(x: Array[Double], w: Array[Double]): Double = {
+    var d = 0.0
+    for { j <- 0 until x.length } { d += x(j) * (if (w(j) == emptyFlag) 0.0 else w(j)) }
+    d
+  }
+
+  def equalityConstrainedRandom(m: Int, ee: Array[Array[Double]], y: Array[Double],
+      eeP: Array[Int],
+      dist: RealDistribution,
+      tol: Double): Array[Double] = {
+    val w = Array.fill(m)(emptyFlag)
+    val jFree = Array.fill(m)(0)
+    eeP.foreach { jp =>
+      val c = ee(jp)
+      val x = y(jp)
+      var nFree = 0
+      (0 until m).foreach { j =>
+        if ((c(j) != 0.0) && (w(j) == emptyFlag)) {
+          jFree(nFree) = j
+          nFree += 1
+        }
+      }
+      if (nFree == 0) {
+        // all of these values are set - failure if it doesn't satisfy c.w == x
+        val xt = dotw(c, w)
+        if (math.abs(xt - x) > tol) {
+          throw new Exception(s"constraint failed: $xt != $x")
+        }
+      } else {
+        (0 until (nFree - 1)).foreach { j =>
+          // set free values randomly (except for the last one)
+          w(j) = dist.sample()
+        }
+        var r = x
+        (0 until m).foreach { j =>
+          if ((c(j) != 0.0) && (w(j) != emptyFlag)) {
+            r -= c(j) * w(j)
+          }
+        }
+        // the last free value is fixed by remainder of the dot-product
+        val j = jFree(nFree-1)
+        w(j) = r / c(j)
+      }
+    }
+    // set any remaining free values randomly
+    (0 until m).foreach { j =>
+      if (w(j) == emptyFlag) {
+        w(j) = dist.sample()
+      }
+    }
+    w
   }
 
   def isMonotonic(data: Seq[Double]) =
