@@ -15,7 +15,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "com.joptimizer" % "joptimizer" % "4.0.0",
-  "com.manyangled" %% "gnuplot4s" % "0.1.0-local-148e95a7" % Test,
+  "com.manyangled" %% "gnuplot4s" % "0.1.0-local-deedf561" % Test,
   "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
 
