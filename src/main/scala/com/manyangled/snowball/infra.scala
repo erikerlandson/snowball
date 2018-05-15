@@ -16,17 +16,32 @@ limitations under the License.
 
 package com.manyangled.snowball
 
+/*
 import com.joptimizer.functions.PDQuadraticMultivariateRealFunction
 import com.joptimizer.functions.PSDQuadraticMultivariateRealFunction
 import com.joptimizer.functions.ConvexMultivariateRealFunction
 import com.joptimizer.functions.LinearMultivariateRealFunction
 import com.joptimizer.optimizers.OptimizationRequest
 import com.joptimizer.optimizers.JOptimizer
+*/
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix
-import org.apache.commons.math3.linear.DiagonalMatrix
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.DiagonalMatrix;
+import org.apache.commons.math3.linear.ArrayRealVector;
+
 import org.apache.commons.math3.distribution.UniformRealDistribution
 import org.apache.commons.math3.distribution.RealDistribution
+
+import org.apache.commons.math3.optim.PointValuePair;
+import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
+import org.apache.commons.math3.optim.InitialGuess;
+
+import com.manyangled.gibbous.optim.convex.BarrierOptimizer;
+import com.manyangled.gibbous.optim.convex.QuadraticFunction;
+import com.manyangled.gibbous.optim.convex.LinearInequalityConstraint;
+
 
 /**
  * Implements various components from:
@@ -81,6 +96,22 @@ object infra {
 
   def solveCP(spec: MonotoneSplineSpec) = {
     val (gg, g, r) = qpObjectiveMatrices(spec)
+    val objective = new QuadraticFunction(gg, g, r)
+    val (hh, t) = qpMonotoneConstraints(spec)
+    val (ee, y) = (Array.empty[Array[Double]], Array.empty[Double])
+    val ip = interiorPoint(spec.mm, hh, t, ee, y)
+    val barrier = new BarrierOptimizer()
+    val pvp = barrier.optimize(
+      new ObjectiveFunction(objective),
+      new LinearInequalityConstraint(hh, t),
+      new InitialGuess(ip)
+    )
+    pvp.getFirst()
+  }
+
+/*
+  def solveCP(spec: MonotoneSplineSpec) = {
+    val (gg, g, r) = qpObjectiveMatrices(spec)
     val objective = new PDQuadraticMultivariateRealFunction(gg, g, r)
     val (hh, t) = qpMonotoneConstraints(spec)
     val (ee, y) = (Array.empty[Array[Double]], Array.empty[Double])
@@ -100,6 +131,7 @@ object infra {
     opt.optimize()
     opt.getOptimizationResponse().getSolution()
   }
+*/
 
   def dot(x: Array[Double], y: Array[Double]): Double = {
     require(x.length == y.length)
