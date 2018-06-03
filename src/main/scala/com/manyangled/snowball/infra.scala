@@ -41,7 +41,7 @@ import org.apache.commons.math3.optim.InitialGuess;
 import com.manyangled.gibbous.optim.convex.BarrierOptimizer;
 import com.manyangled.gibbous.optim.convex.QuadraticFunction;
 import com.manyangled.gibbous.optim.convex.LinearInequalityConstraint;
-
+import com.manyangled.gibbous.optim.convex._
 
 /**
  * Implements various components from:
@@ -99,7 +99,9 @@ object infra {
     val objective = new QuadraticFunction(gg, g, r)
     val (hh, t) = qpMonotoneConstraints(spec)
     val (ee, y) = (Array.empty[Array[Double]], Array.empty[Double])
-    val ip = interiorPoint(spec.mm, hh, t, ee, y)
+    //val ip = interiorPoint(spec.mm, hh, t, ee, y)
+    val pvpFP = ConvexOptimizer.feasiblePoint(new LinearInequalityConstraint(hh, t));
+    val ip = pvpFP.getFirst();
     val barrier = new BarrierOptimizer()
     val pvp = barrier.optimize(
       new ObjectiveFunction(objective),
