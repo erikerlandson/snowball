@@ -1,7 +1,7 @@
 # snowball
 Monotonic smoothing splines
 
-The goal is to provide a scala implementation of monotonic smoothing spines.
+The goal is to provide a JVM (java/scala) implementation of monotonic smoothing spines.
 
 References:
 1. H. Fujioka and H. Kano: [Monotone smoothing spline curves using normalized uniform cubic B-splines](/monotone-cubic-B-splines-2013.pdf), Trans. Institute of Systems, Control and Information Engineers, Vol. 26, No. 11, pp. 389–397, 2013
