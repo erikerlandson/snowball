@@ -20,4 +20,10 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         return null;
     }
+
+    public static final double UNSET_DOUBLE = Double.NaN;
+
+    public static final double LAMBDA_DEFAULT = 1.0;
+
+    public static final int M_DEFAULT = 5;
 }
