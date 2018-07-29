@@ -19,7 +19,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-math3" % "3.6.1" % Provided,
-  "com.manyangled" %% "gnuplot4s" % "0.1.0-local-deedf561" % Test,
+  "com.manyangled" % "gibbous" % "0.1.0" % Provided,
   "com.novocode" % "junit-interface" % "0.11" % Test
 )
 
