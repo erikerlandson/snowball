@@ -4,7 +4,7 @@ Monotonic smoothing splines
 The goal is to provide a scala implementation of monotonic smoothing spines.
 
 References:
-1. H. Fujioka and H. Kano: [Monotone smoothing spline curves using normalized uniform cubic B-splines](/monotone-cubic-B-splines-2013.pdf), Trans. Institute of Systems, Control and Information Engineers, Vol. 26, No. 11, pp. 389–397, 2013
+1. H. Fujioka and H. Kano: [Monotone smoothing spline curves using normalized uniform cubic B-splines](/raw/master/monotone-cubic-B-splines-2013.pdf), Trans. Institute of Systems, Control and Information Engineers, Vol. 26, No. 11, pp. 389–397, 2013
 
 1. Hiroyuki KANO, Hiroyuki FUJIOKA, and Clyde F. MARTIN, [Optimal Smoothing Spline with Constraints on Its Derivatives](https://www.jstage.jst.go.jp/article/jcmsi/7/2/7_104/_pdf), SICE Journal of Control, Measurement, and System Integration, Vol.7, No. 2, pp. 104–111, March 2014
 
