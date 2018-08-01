@@ -17,6 +17,12 @@ import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
 public class MonotonicSplineInterpolator implements UnivariateInterpolator {
+    private int m = M_DEFAULT;
+    private double lambda = LAMBDA_DEFAULT;
+    private double[] w = null;
+    private double umin = UNSET_DOUBLE;
+    private double umax = UNSET_DOUBLE;
+
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         return null;
     }
