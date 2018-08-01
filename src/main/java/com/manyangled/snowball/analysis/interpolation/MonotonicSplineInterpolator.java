@@ -13,6 +13,7 @@ limitations under the License.
 
 package com.manyangled.snowball.analysis.interpolation;
 
+import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
@@ -24,6 +25,31 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private double umax = UNSET_DOUBLE;
 
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
+        final int n = x.length;
+        if (n < m) throw new IllegalArgumentException("data length (n) must be >= m");
+        if (y.length != n) throw new DimensionMismatchException(y.length, n);
+        if (w == null) {
+            double[] w = new double[n];
+            for (int j = 0; j < n; ++j) w[j] = 1.0;
+        }
+        if (w.length != n) throw new DimensionMismatchException(w.length, n);
+        for (int j = 0; j < n; ++j)
+            if (w[j] <= 0.0) throw new IllegalArgumentException("weights (w) must be > 0");
+        if (umin == UNSET_DOUBLE) {
+            double z = x[0];
+            for (int j = 1; j < n; ++j) if (x[j] < z) z = x[j];
+            umin = z;
+        }
+        if (umax == UNSET_DOUBLE) {
+            double z = x[0];
+            for (int j = 1; j < n; ++j) if (x[j] > z) z = x[j];
+            umax = z;
+        }
+        if (umax <= umin) throw new IllegalArgumentException("xMin must be < xMax");
+        final double alpha = (double)m / (umax - umin);
+        final int M = m + 3;
+        final double[] tk = new double[M];
+        for (int j = -3; j < m; ++j) tk[3+j] = umin + ((double)j / alpha);
         return null;
     }
 
