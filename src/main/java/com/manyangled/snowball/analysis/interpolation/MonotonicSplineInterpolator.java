@@ -46,6 +46,13 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         umax = xMax;
     }
 
+    public void setW(double... w) {
+        for (int j = 0; j < w.length; ++j)
+            if (w[j] <= 0.0)
+                throw new IllegalArgumentException("elements of w must be > 0");
+        this.w = w;
+    }
+
     public static final double UNSET_DOUBLE = Double.NaN;
 
     public static final double LAMBDA_DEFAULT = 1.0;
