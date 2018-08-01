@@ -33,6 +33,12 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         this.m = m;
     }
 
+    public void setLambda(double lambda) {
+        if (lambda <= 0.0)
+            throw new IllegalArgumentException("lambda must be > 0");
+        this.lambda = lambda;
+    }
+
     public static final double UNSET_DOUBLE = Double.NaN;
 
     public static final double LAMBDA_DEFAULT = 1.0;
