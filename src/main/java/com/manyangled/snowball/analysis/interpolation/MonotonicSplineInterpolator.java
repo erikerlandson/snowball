@@ -86,4 +86,39 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     public static final int M_DEFAULT = 5;
 
     private static final int M_MINIMUM = 4;
+
+    /** n<sub>0,3</sub>(t) from Table 1 */
+    public static double n03(double t) {
+        double omt = 1.0 - t;
+        return omt * omt * omt / 6.0;
+    }
+
+    /** n<sub>1,3</sub>(t) from Table 1 */
+    public static double n13(double t) {
+        double t2 = t * t;
+        double t3 = t * t2;
+        return (4.0 - (6.0 * t2) + (3.0 * t3)) / 6.0;
+    }
+
+    /** n<sub>2,3</sub>(t) from Table 1 */
+    public static double n23(double t) {
+        double t2 = t * t;
+        double t3 = t * t2;
+        return (1.0 + (3.0 * t) + (3.0 * t2) - (3.0 * t3)) / 6.0;
+    }
+
+    /** n<sub>3,3</sub>(t) from Table 1 */
+    public static double n33(double t) {
+        return t * t * t / 6.0;
+    }
+
+    /** basis B<sub>3</sub>(t) from Eq(3) */
+    public static double b3(double t) {
+        if (t < 0.0) return 0.0;
+        if (t < 1.0) return n33(t);
+        if (t < 2.0) return n23(t - 1.0);
+        if (t < 3.0) return n13(t - 2.0);
+        if (t < 4.0) return n03(t - 3.0);
+        return 0.0;
+    }
 }
