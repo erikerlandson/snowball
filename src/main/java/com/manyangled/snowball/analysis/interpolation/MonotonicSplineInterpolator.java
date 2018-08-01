@@ -27,9 +27,17 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         return null;
     }
 
+    public void setM(int m) {
+        if (m < M_MINIMUM)
+            throw new IllegalArgumentException("m was too small");
+        this.m = m;
+    }
+
     public static final double UNSET_DOUBLE = Double.NaN;
 
     public static final double LAMBDA_DEFAULT = 1.0;
 
     public static final int M_DEFAULT = 5;
+
+    private static final int M_MINIMUM = 4;
 }
