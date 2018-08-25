@@ -14,6 +14,12 @@ limitations under the License.
 package com.manyangled.snowball.analysis.interpolation;
 
 import org.apache.commons.math3.exception.DimensionMismatchException;
+
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.ArrayRealVector;
+
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
@@ -87,38 +93,32 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
 
     private static final int M_MINIMUM = 4;
 
-    /** N<sub>0,3</sub>(t) from Table 1 */
-    public static double N03(double t) {
-        double omt = 1.0 - t;
-        return omt * omt * omt / 6.0;
-    }
-
-    /** N<sub>1,3</sub>(t) from Table 1 */
-    public static double N13(double t) {
-        double t2 = t * t;
-        double t3 = t * t2;
-        return (4.0 - (6.0 * t2) + (3.0 * t3)) / 6.0;
-    }
-
-    /** N<sub>2,3</sub>(t) from Table 1 */
-    public static double N23(double t) {
-        double t2 = t * t;
-        double t3 = t * t2;
-        return (1.0 + (3.0 * t) + (3.0 * t2) - (3.0 * t3)) / 6.0;
-    }
-
-    /** N<sub>3,3</sub>(t) from Table 1 */
-    public static double N33(double t) {
-        return t * t * t / 6.0;
-    }
-
     /** basis B<sub>3</sub>(t) from Eq(3) */
     public static double B3(double t) {
         if (t < 0.0) return 0.0;
-        if (t < 1.0) return N33(t);
-        if (t < 2.0) return N23(t - 1.0);
-        if (t < 3.0) return N13(t - 2.0);
-        if (t < 4.0) return N03(t - 3.0);
+        if (t < 1.0) return t * t * t / 6.0;
+        if (t < 2.0) {
+            t -= 1.0;
+            double t2 = t * t;
+            double t3 = t * t2;
+            return (1.0 + (3.0 * t) + (3.0 * t2) - (3.0 * t3)) / 6.0;
+        }
+        if (t < 3.0) {
+            t -= 2.0;
+            double t2 = t * t;
+            double t3 = t * t2;
+            return (4.0 - (6.0 * t2) + (3.0 * t3)) / 6.0;
+        }
+        if (t < 4.0) {
+            t = 4.0 - t;  // 1 - (t-3)
+            return t * t * t / 6.0;
+        }
         return 0.0;
+    }
+
+    private static RealMatrix matrixBT(double alpha, double[] tk, double[] u) {
+        int n = u.length;
+        int M = tk.length;
+        return null;
     }
 }
