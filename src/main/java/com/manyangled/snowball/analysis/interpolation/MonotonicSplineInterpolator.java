@@ -96,20 +96,26 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     /** basis B<sub>3</sub>(t) from Eq(3) */
     public static double B3(double t) {
         if (t < 0.0) return 0.0;
-        if (t < 1.0) return t * t * t / 6.0;
+        if (t < 1.0) {
+            // N33(t)
+            return t * t * t / 6.0;
+        }
         if (t < 2.0) {
+            // N23(t-1)
             t -= 1.0;
             double t2 = t * t;
             double t3 = t * t2;
             return (1.0 + (3.0 * t) + (3.0 * t2) - (3.0 * t3)) / 6.0;
         }
         if (t < 3.0) {
+            // N13(t-2)
             t -= 2.0;
             double t2 = t * t;
             double t3 = t * t2;
             return (4.0 - (6.0 * t2) + (3.0 * t3)) / 6.0;
         }
         if (t < 4.0) {
+            // N03(t-3)
             t = 4.0 - t;  // 1 - (t-3)
             return t * t * t / 6.0;
         }
