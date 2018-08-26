@@ -21,9 +21,15 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 
+import org.apache.commons.math3.optim.PointValuePair;
+import org.apache.commons.math3.optim.InitialGuess;
+import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
+
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
+import com.manyangled.gibbous.optim.convex.ConvexOptimizer;
+import com.manyangled.gibbous.optim.convex.BarrierOptimizer;
 import com.manyangled.gibbous.optim.convex.QuadraticFunction;
 import com.manyangled.gibbous.optim.convex.LinearInequalityConstraint;
 
@@ -60,6 +66,22 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         final int M = m + 3;
         final double[] tk = new double[M];
         for (int j = -3; j < m; ++j) tk[3+j] = umin + ((double)j / alpha);
+
+        QuadraticFunction qf = quadraticObjective(x, y, tk, w, lambda, alpha);
+        LinearInequalityConstraint monotone = monotoneConstraints(m, M);
+
+        PointValuePair fpvp = ConvexOptimizer.feasiblePoint(monotone);
+        assert fpvp.getSecond() < 0.0;
+        double[] ig = fpvp.getFirst();
+        
+        BarrierOptimizer barrier = new BarrierOptimizer();
+        PointValuePair pvp = barrier.optimize(
+            new ObjectiveFunction(qf),
+            monotone,
+            new InitialGuess(ig));
+
+        double[] tau = pvp.getFirst();
+        
         return null;
     }
 
