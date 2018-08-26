@@ -25,6 +25,7 @@ import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
 import com.manyangled.gibbous.optim.convex.QuadraticFunction;
+import com.manyangled.gibbous.optim.convex.LinearInequalityConstraint;
 
 public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private int m = M_DEFAULT;
@@ -225,5 +226,42 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         double r = 0.0;
         for (int j = 0; j < d.length; ++j) r += rt[j] * d[j];
         return new QuadraticFunction(G.getData(), g, r);
+    }
+
+    private static LinearInequalityConstraint monotoneConstraints(int m, int M) {
+        // negative of Eq(64), because JOptimizer expects constraints of form Hx < 0 instead of Hx >= 0
+        double[] Fm3 = { 1.0, 0.0, -1.0,  0.0 };
+        double[] Fm2 = { 1.0, 2.0, -3.0,  0.0 };
+        double[] Fm1 = { 0.0, 1.0,  0.0, -1.0 };
+        double[] Fm0 = { 0.0, 3.0, -2.0, -1.0 };
+        int f = Fm0.length;
+        
+        // apply constraints over the interpolation interval (starting at knot interval [t0, t1])
+        // Eq(66), replicated for each interval starting at t0, t1, ... t(m-1)
+        double[][] H = new double[4 * m][M];
+        int j = 0;
+        for (int z = 0; z < m; ++z) {
+            for (int k = 0; k < z; ++k) H[j][k] = 0.0;
+            for (int k = 0; k < f; ++k) H[j][z + k] = Fm3[k];
+            for (int k = z + f; k < M; ++k) H[j][k] = 0.0;
+            j += 1;
+            for (int k = 0; k < z; ++k) H[j][k] = 0.0;
+            for (int k = 0; k < f; ++k) H[j][z + k] = Fm2[k];
+            for (int k = z + f; k < M; ++k) H[j][k] = 0.0;
+            j += 1;
+            for (int k = 0; k < z; ++k) H[j][k] = 0.0;
+            for (int k = 0; k < f; ++k) H[j][z + k] = Fm1[k];
+            for (int k = z + f; k < M; ++k) H[j][k] = 0.0;
+            j += 1;
+            for (int k = 0; k < z; ++k) H[j][k] = 0.0;
+            for (int k = 0; k < f; ++k) H[j][z + k] = Fm0[k];
+            for (int k = z + f; k < M; ++k) H[j][k] = 0.0;
+            j += 1;            
+        }
+
+        double[] h = new double[4 * m];
+        for (int k = 0; k < h.length; ++k) h[k] = 0.0;
+
+        return new LinearInequalityConstraint(H, h);
     }
 }
