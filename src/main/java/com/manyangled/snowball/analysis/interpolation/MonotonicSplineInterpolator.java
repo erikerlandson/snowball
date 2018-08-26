@@ -123,8 +123,47 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     }
 
     private static RealMatrix matrixBT(double alpha, double[] tk, double[] u) {
+        // tk is array of knot points, dimension M
+        // u is vector of data "x" points; in same axis as knot points tk
+        // note this returns B-transposed relative to Eq(12).
         int n = u.length;
         int M = tk.length;
-        return null;
+        double[][] bt = new double[n][M];
+        for (int j = 0; j < n; ++j) {
+            for (int k = 0; k < M; ++k) {
+                bt[j][k] = B3(alpha * (u[j] - tk[k]));
+            }
+        }
+        return new Array2DRowRealMatrix(bt, false);
+    }
+
+    private static double[][] matrixRinf(int M) {
+        // unsure if this is hard minimum but makes logic safe for now by
+        // guaranteeing no overlap of special sections
+        if (M < 7) throw new IllegalArgumentException("R must have >= 7 rows");
+        double[] band = { 1.0 / 6.0, 0.0, -9.0 / 6.0, 16.0 / 6.0, -9.0 / 6.0, 0.0, 1.0 / 6.0 };
+        int b = band.length;
+        double[][] rinf = new double[M][M];
+        // first 3 rows: clip band on the left
+        for (int j = 0; j < 3; ++j) {
+            int d = 3 - j;
+            for (int k = d; k < b; ++k) rinf[j][k - d] = band[k];
+            for (int k = b - d; k < M; ++k) rinf[j][k] = 0.0;
+        }
+        // the middle part: all of band will fit
+        for (int j = 3; j < M - 3; ++j) {
+            int z = j - 3;
+            for (int k = 0; k < z; ++k) rinf[j][k] = 0.0;
+            for (int k = 0; k < b; ++k) rinf[j][z + k] = band[k];
+            for (int k = z + b; k < M; ++k) rinf[j][k] = 0.0;
+        }
+        // last 3 rows: clip band on the right
+        for (int d = 1; d <= 3; ++d) {
+            int j = M - 3 + (d - 1);
+            int z = M - (b - d);
+            for (int k = 0; k < z; ++k) rinf[j][k] = 0.0;
+            for (int k = 0; k < (b - d); ++k) rinf[j][z + k] = band[k];
+        }
+        return rinf;
     }
 }
