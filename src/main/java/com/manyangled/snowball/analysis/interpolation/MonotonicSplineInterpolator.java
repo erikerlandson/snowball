@@ -138,6 +138,7 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     }
 
     private static double[][] matrixRinf(int M) {
+        // returns matrix Rinf Eq(26) for size MxM
         // unsure if this is hard minimum but makes logic safe for now by
         // guaranteeing no overlap of special sections
         if (M < 7) throw new IllegalArgumentException("R must have >= 7 rows");
@@ -165,5 +166,34 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             for (int k = 0; k < (b - d); ++k) rinf[j][z + k] = band[k];
         }
         return rinf;
+    }
+
+    private static RealMatrix lambdaQ(int M, double lambda, double alpha) {
+        // From Eq(27), upper left corner only, delaying 1/6 factor
+        double[][] rm = {
+            { 14.0,  -6.0,   0.0 },
+            { -6.0,   8.0,  -3.0 },
+            { 0.0,  -3.0,   2.0 }
+        };
+        // From Eq(28), lower right corner only
+        double[][] rp = {
+            {  2.0,  -3.0,   0.0 },
+            { -3.0,   8.0,  -6.0 },
+            {  0.0,  -6.0,   14.0 }
+        };
+        double[][] lq = matrixRinf(M); // Rinf, from Eq(26)
+        // From Eq(25): subtract rm and rp to get R
+        for (int j = 0; j < 3; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                lq[j][k] -= rm[j][k] / 6.0;
+                lq[M - 3 + j][M - 3 + k] -= rp[j][k] / 6.0;
+            }
+        }
+        // Eq(15) & Eq(22) - matrix lambda Q from R
+        double f = lambda * alpha * alpha * alpha;
+        for (int j = 0; j < M; ++j)
+            for (int k = 0; k < M; ++k)
+                lq[j][k] *= f;
+        return new Array2DRowRealMatrix(lq, false);
     }
 }
