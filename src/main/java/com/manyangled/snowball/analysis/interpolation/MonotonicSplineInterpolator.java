@@ -19,9 +19,12 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.DiagonalMatrix;
 
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+
+import com.manyangled.gibbous.optim.convex.QuadraticFunction;
 
 public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private int m = M_DEFAULT;
@@ -195,5 +198,32 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             for (int k = 0; k < M; ++k)
                 lq[j][k] *= f;
         return new Array2DRowRealMatrix(lq, false);
+    }
+
+    private static QuadraticFunction quadraticObjective(
+        double[] u,
+        double[] d,
+        double[] tk,
+        double[] w,
+        double lambda,
+        double alpha) {
+        // constructs G, g and r from Eq(14)
+        // Warning: Eq(68) is presented as a generalization but its (tau).(g) term is
+        // positive not negative, and it is missing the (r) term.
+        RealMatrix BT = matrixBT(alpha, tk, u);
+        RealMatrix B = BT.transpose();
+        RealMatrix lambdaQ = lambdaQ(tk.length, lambda, alpha);
+        RealMatrix W = new DiagonalMatrix(w, false);
+        // Eq(15)
+        RealMatrix G = lambdaQ.add(B.multiply(W).multiply(BT));
+        // Eq(16); 'operate' method is "multiply by vector"
+        // This adds a (-1) factor for the subtraction from Eq(14)
+        double[] rt = W.operate(d);
+        double[] g = B.operate(rt);
+        for (int j = 0; j < g.length; ++j) g[j] *= -1.0;
+        // Eq(17)
+        double r = 0.0;
+        for (int j = 0; j < d.length; ++j) r += rt[j] * d[j];
+        return new QuadraticFunction(G.getData(), g, r);
     }
 }
