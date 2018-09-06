@@ -286,4 +286,18 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
 
         return new LinearInequalityConstraint(H, h);
     }
+
+    // coefficients for knot interval [K[j], K[j+1]]
+    public static double[] standardCoefficientsB3(int j, double[] tau, double alpha) {
+        double[] c = new double[4];
+        double a = 1.0 / 6.0;
+        c[0] = a * (tau[j-1] + (4.0 * tau[j-2]) + tau[j-3]);
+        a *= alpha;
+        c[1] = a * ((3.0 * tau[j-1]) - (3.0 * tau[j-3]));
+        a *= alpha;
+        c[2] = a * ((3.0 * tau[j-1]) - (6.0 * tau[j-2]) + (3.0 * tau[j-3]));
+        a *= alpha;
+        c[3] = a * (tau[j] - (3.0 * tau[j-1]) + (3.0 * tau[j-2]) - tau[j-3]);
+        return c;
+    }
 }
