@@ -48,7 +48,7 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         if (n < m) throw new IllegalArgumentException("data length (n) must be >= m");
         if (y.length != n) throw new DimensionMismatchException(y.length, n);
         if (w == null) {
-            double[] w = new double[n];
+            w = new double[n];
             for (int j = 0; j < n; ++j) w[j] = 1.0;
         }
         if (w.length != n) throw new DimensionMismatchException(w.length, n);
