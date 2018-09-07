@@ -202,7 +202,7 @@ class MSISupport {
         double[] knot = new double[m + 1];
         for (int j = 0; j < m; ++j) {
             knot[j] = xmin + ((double)j / alpha);
-            poly[j] = new PolynomialFunction(standardCoefficientsB3(j, tau, alpha));
+            poly[j] = new PolynomialFunction(standardCoefficientsB3(3 + j, tau, alpha));
         }
         knot[m] = xmin + ((double)m / alpha);
 
