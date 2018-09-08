@@ -24,8 +24,8 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private int m = M_DEFAULT;
     private double lambda = LAMBDA_DEFAULT;
     private double[] w = null;
-    private double xmin = UNSET_DOUBLE;
-    private double xmax = UNSET_DOUBLE;
+    private double xmin = Double.NaN;
+    private double xmax = Double.NaN;
 
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         final int n = x.length;
@@ -38,12 +38,12 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         if (w.length != n) throw new DimensionMismatchException(w.length, n);
         for (int j = 0; j < n; ++j)
             if (w[j] <= 0.0) throw new IllegalArgumentException("weights (w) must be > 0");
-        if (xmin == UNSET_DOUBLE) {
+        if (Double.isNaN(xmin)) {
             double z = x[0];
             for (int j = 1; j < n; ++j) if (x[j] < z) z = x[j];
             xmin = z;
         }
-        if (xmax == UNSET_DOUBLE) {
+        if (Double.isNaN(xmax)) {
             double z = x[0];
             for (int j = 1; j < n; ++j) if (x[j] > z) z = x[j];
             xmax = z;
@@ -78,8 +78,6 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
                 throw new IllegalArgumentException("elements of w must be > 0");
         this.w = w;
     }
-
-    public static final double UNSET_DOUBLE = Double.NaN;
 
     public static final double LAMBDA_DEFAULT = 1.0;
 
