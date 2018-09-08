@@ -8,10 +8,6 @@ crossPaths := false // drop off Scala suffix from artifact names.
 
 autoScalaLibrary := false // exclude scala-library from dependencies
 
-// scalaVersion := "2.11.8"
-
-// crossScalaVersions := Seq("2.11.8", "2.12.4")
-
 resolvers ++= Seq(
   Resolver.sonatypeRepo("releases"),
   Resolver.sonatypeRepo("snapshots")
@@ -20,6 +16,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-math3" % "3.6.1" % Provided,
   "com.manyangled" % "gibbous" % "0.1.0" % Provided,
+  "org.hamcrest" % "hamcrest-library" % "1.3" % Test,
   "com.novocode" % "junit-interface" % "0.11" % Test
 )
 
