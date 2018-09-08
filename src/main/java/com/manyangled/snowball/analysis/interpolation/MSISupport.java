@@ -251,7 +251,8 @@ class MSISupport {
         LinearInequalityConstraint monotone = monotoneConstraints(m, M);
 
         PointValuePair fpvp = feasiblePoint(monotone);
-        assert fpvp.getSecond() < 0.0;
+        if (fpvp.getSecond() >= 0.0)
+            throw new RuntimeException("Unable to find an initial point in the feasible region");
         double[] ig = fpvp.getFirst();
         
         BarrierOptimizer barrier = new BarrierOptimizer();
