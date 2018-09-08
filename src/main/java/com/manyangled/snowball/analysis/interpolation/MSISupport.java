@@ -219,6 +219,7 @@ class MSISupport {
     }
 
     // coefficients for knot interval [K[j], K[j+1]]
+    // http://erikerlandson.github.io/blog/2018/09/02/putting-cubic-b-splines-into-standard-polynomial-form/
     public static double[] standardCoefficientsB3(int j, double[] tau, double alpha) {
         double[] c = new double[4];
         double a = 1.0 / 6.0;
