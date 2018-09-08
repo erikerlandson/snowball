@@ -15,33 +15,17 @@ package com.manyangled.snowball.analysis.interpolation;
 
 import org.apache.commons.math3.exception.DimensionMismatchException;
 
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.DiagonalMatrix;
-
-import org.apache.commons.math3.optim.PointValuePair;
-import org.apache.commons.math3.optim.InitialGuess;
-import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
-
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 
-import com.manyangled.gibbous.optim.convex.ConvexOptimizer;
-import com.manyangled.gibbous.optim.convex.BarrierOptimizer;
-import com.manyangled.gibbous.optim.convex.QuadraticFunction;
-import com.manyangled.gibbous.optim.convex.LinearInequalityConstraint;
-
-import static com.manyangled.snowball.analysis.interpolation.MSISupport.*;
+import static com.manyangled.snowball.analysis.interpolation.MSISupport.fitMonotoneSpline;
 
 public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private int m = M_DEFAULT;
     private double lambda = LAMBDA_DEFAULT;
     private double[] w = null;
-    private double umin = UNSET_DOUBLE;
-    private double umax = UNSET_DOUBLE;
+    private double xmin = UNSET_DOUBLE;
+    private double xmax = UNSET_DOUBLE;
 
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         final int n = x.length;
@@ -54,38 +38,19 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         if (w.length != n) throw new DimensionMismatchException(w.length, n);
         for (int j = 0; j < n; ++j)
             if (w[j] <= 0.0) throw new IllegalArgumentException("weights (w) must be > 0");
-        if (umin == UNSET_DOUBLE) {
+        if (xmin == UNSET_DOUBLE) {
             double z = x[0];
             for (int j = 1; j < n; ++j) if (x[j] < z) z = x[j];
-            umin = z;
+            xmin = z;
         }
-        if (umax == UNSET_DOUBLE) {
+        if (xmax == UNSET_DOUBLE) {
             double z = x[0];
             for (int j = 1; j < n; ++j) if (x[j] > z) z = x[j];
-            umax = z;
+            xmax = z;
         }
-        if (umax <= umin) throw new IllegalArgumentException("xMin must be < xMax");
-        final double alpha = (double)m / (umax - umin);
-        final int M = m + 3;
-        final double[] tk = new double[M];
-        for (int j = -3; j < m; ++j) tk[3+j] = umin + ((double)j / alpha);
-
-        QuadraticFunction qf = quadraticObjective(x, y, tk, w, lambda, alpha);
-        LinearInequalityConstraint monotone = monotoneConstraints(m, M);
-
-        PointValuePair fpvp = ConvexOptimizer.feasiblePoint(monotone);
-        assert fpvp.getSecond() < 0.0;
-        double[] ig = fpvp.getFirst();
+        if (xmax <= xmin) throw new IllegalArgumentException("xMin must be < xMax");
         
-        BarrierOptimizer barrier = new BarrierOptimizer();
-        PointValuePair pvp = barrier.optimize(
-            new ObjectiveFunction(qf),
-            monotone,
-            new InitialGuess(ig));
-
-        double[] tau = pvp.getFirst();
-        
-        return null;
+        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w);
     }
 
     public void setM(int m) {
@@ -103,8 +68,8 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     public void setBounds(double xMin, double xMax) {
         if (xMax <= xMin)
             throw new IllegalArgumentException("xMin must be < xMax");
-        umin = xMin;
-        umax = xMax;
+        xmin = xMin;
+        xmax = xMax;
     }
 
     public void setW(double... w) {
