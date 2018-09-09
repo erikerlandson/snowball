@@ -43,10 +43,14 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
      * @param y the y data y1, y2, ...
      * @return a polynomial spline that interpolates the data, and is monotonic non-decreasing over its 
      * interpolation domain.
+     * <p>
+     * NOTE: the number of data provided must be &ge; (m + 3), where (m) is the number of 
+     * spline intervals configured. See the setM method below.
      */
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         final int n = x.length;
-        if (n < m) throw new IllegalArgumentException("data length (n) must be >= m");
+        final int M = m + 3;
+        if (n < M) throw new IllegalArgumentException(String.format("data length (%d) must be >= %d", n, M));
         if (y.length != n) throw new DimensionMismatchException(y.length, n);
         if (w == null) {
             w = new double[n];
@@ -89,11 +93,12 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
      * @param m the number of piecewise intervals.
      * <p>
      * NOTE: m is currently required to be &ge; 4, due to internal numeric considerations.
-     * m is also expected to be &le; the number of data points provided for interpolation.
+     * (m + 3) is also expected to be &le; the number of data points provided for interpolation.
+     * for example, if m is set to 5, then at least 8 data points must be provided for interpolation.
      */
     public void setM(int m) {
         if (m < M_MINIMUM)
-            throw new IllegalArgumentException("m was too small");
+            throw new IllegalArgumentException(String.format("m must be >= %d", M_MINIMUM));
         this.m = m;
     }
 
