@@ -96,7 +96,7 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
 
     /**
      * Set the smoothing parameter for the spline fitting
-     * @param lambda the smoothing parameter. lambda is > 0. Larger values increase bias toward smoothing.
+     * @param lambda the smoothing parameter. lambda is &gt; 0. Larger values increase bias toward smoothing.
      * Defaults to 1.
      */
     public void setLambda(double lambda) {
@@ -108,7 +108,7 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     /**
      * Set the interpolation domain for the fitting. Values outside this domain will be considered illegal.
      * @param xMin the lower bound of the domain. Defaults to minimum x data value.
-     * @param xMAx the upper bound of the domain. Defaults to maximum x data value.
+     * @param xMax the upper bound of the domain. Defaults to maximum x data value.
      */
     public void setBounds(double xMin, double xMax) {
         if (xMax <= xMin)
@@ -143,7 +143,8 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
      * Add a hard equality constraint that the derivative of interpolation s'(x) = dydx.
      * @param x the x value of the constraint
      * @param dydx the value that the interpolation derivative s'(x) is constrained to equal.
-     * @note dydx must be >= 0, to be consistent with monotonic interpolation.
+     * <p>
+     * NOTE: dydx must be &ge; 0, to be consistent with monotonic interpolation.
      */
     public void addGradientEqualityConstraint(double x, double dydx) {
         // If and when I support monotone decreasing I'll need to defer this check.
