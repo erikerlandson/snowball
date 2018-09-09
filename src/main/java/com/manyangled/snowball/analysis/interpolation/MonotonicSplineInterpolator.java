@@ -22,6 +22,9 @@ import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
 import static com.manyangled.snowball.analysis.interpolation.MSISupport.fitMonotoneSpline;
 
+/**
+ * Interpolates data using a spline that is constrained to be monotonic non-decreasing.
+ */
 public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private int m = M_DEFAULT;
     private double lambda = LAMBDA_DEFAULT;
@@ -33,6 +36,14 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private ArrayList<Double> gConstraintX = new ArrayList<Double>();
     private ArrayList<Double> gConstraintY = new ArrayList<Double>();
 
+    /**
+     * Given data (x1, y1), (x2, y2)..., fit an interpolating spline that is constrained to be monotonic.
+     * 
+     * @param x the x data x1, x2, ...
+     * @param y the y data y1, y2, ...
+     * @return a polynomial spline that interpolates the data, and is monotonic non-decreasing over its 
+     * interpolation domain.
+     */
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         final int n = x.length;
         if (n < m) throw new IllegalArgumentException("data length (n) must be >= m");
@@ -73,18 +84,32 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC, xgC, ygC);
     }
 
+    /**
+     * Set the number of piecewise polynomial intervals over the interpolation domain.
+     * @param m the number of piecewise intervals.
+     */
     public void setM(int m) {
         if (m < M_MINIMUM)
             throw new IllegalArgumentException("m was too small");
         this.m = m;
     }
 
+    /**
+     * Set the smoothing parameter for the spline fitting
+     * @param lambda the smoothing parameter. lambda is > 0. Larger values increase bias toward smoothing.
+     * Defaults to 1.
+     */
     public void setLambda(double lambda) {
         if (lambda <= 0.0)
             throw new IllegalArgumentException("lambda must be > 0");
         this.lambda = lambda;
     }
 
+    /**
+     * Set the interpolation domain for the fitting. Values outside this domain will be considered illegal.
+     * @param xMin the lower bound of the domain. Defaults to minimum x data value.
+     * @param xMAx the upper bound of the domain. Defaults to maximum x data value.
+     */
     public void setBounds(double xMin, double xMax) {
         if (xMax <= xMin)
             throw new IllegalArgumentException("xMin must be < xMax");
@@ -92,6 +117,11 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         xmax = xMax;
     }
 
+    /**
+     * Set the weights for data points. Higher weights at (x, y) increase bias toward fitting an interpolation
+     * that passes close to (x, y).
+     * @param w the weight vector. Must be same length as data. Defaults to [1, 1, 1... ].
+     */
     public void setW(double... w) {
         for (int j = 0; j < w.length; ++j)
             if (w[j] <= 0.0)
@@ -99,11 +129,22 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         this.w = w;
     }
 
+    /**
+     * Add a hard equality constraint that the interpolation s(x) = y.
+     * @param x the x value of the constraint
+     * @param y the value that the interpolation s(x) is constrained to equal.
+     */
     public void addEqualityConstraint(double x, double y) {
         constraintX.add(x);
         constraintY.add(y);
     }
 
+    /**
+     * Add a hard equality constraint that the derivative of interpolation s'(x) = dydx.
+     * @param x the x value of the constraint
+     * @param dydx the value that the interpolation derivative s'(x) is constrained to equal.
+     * @note dydx must be >= 0, to be consistent with monotonic interpolation.
+     */
     public void addGradientEqualityConstraint(double x, double dydx) {
         // If and when I support monotone decreasing I'll need to defer this check.
         if (dydx < 0.0)
@@ -112,9 +153,12 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         gConstraintY.add(dydx);
     }
 
+    /** The default value for smoothing parameter lambda */
     public static final double LAMBDA_DEFAULT = 1.0;
 
+    /** The default value for number of piecewise polynomial intervals (m) */
     public static final int M_DEFAULT = 5;
 
+    /** The minimum number of piecewise intervals */
     private static final int M_MINIMUM = 4;
 }
