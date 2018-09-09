@@ -43,8 +43,8 @@ public class MonotonicSplineTest {
 
     @Test
     public void test1() {
-        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+        double[] y = { 0.0, 0.2, 0.1, 0.4, 0.5, 0.6, 0.9, 0.8, 1.0 };
         MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
         testMonotone(s);
@@ -52,53 +52,53 @@ public class MonotonicSplineTest {
 
     @Test
     public void testEqualityConstraint1() {
-        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+        double[] y = { 0.0, 0.2, 0.1, 0.4, 0.5, 0.6, 0.9, 0.8, 1.0 };
         MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
-        interpolator.addEqualityConstraint(3.5, 0.7);
+        interpolator.addEqualityConstraint(5.0, 0.7);
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
         testMonotone(s);
-        assertThat(s.value(3.5), closeTo(0.7, 1e-9));
+        assertThat(s.value(5.0), closeTo(0.7, 1e-9));
     }
 
     @Test
     public void testEqualityConstraint2() {
-        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+        double[] y = { 0.0, 0.2, 0.1, 0.4, 0.5, 0.6, 0.9, 0.8, 1.0 };
         MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
         interpolator.addEqualityConstraint(1.0, 0.0);
-        interpolator.addEqualityConstraint(6.0, 1.0);
+        interpolator.addEqualityConstraint(9.0, 1.0);
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
         testMonotone(s);
         assertThat(s.value(1.0), closeTo(0.0, 1e-9));
-        assertThat(s.value(6.0), closeTo(1.0, 1e-9));
+        assertThat(s.value(9.0), closeTo(1.0, 1e-9));
     }
 
     @Test
     public void testGradientConstraint1() {
-        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+        double[] y = { 0.0, 0.2, 0.1, 0.4, 0.5, 0.6, 0.9, 0.8, 1.0 };
         MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
-        interpolator.addGradientEqualityConstraint(3.5, 2.0);
+        interpolator.addGradientEqualityConstraint(5.0, 2.0);
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
         testMonotone(s);
         PolynomialSplineFunction ds = s.polynomialSplineDerivative();
-        assertThat(ds.value(3.5), closeTo(2.0, 1e-9));
+        assertThat(ds.value(5.0), closeTo(2.0, 1e-9));
     }
 
     @Test
     public void testGradientConstraint2() {
-        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+        double[] y = { 0.0, 0.2, 0.1, 0.4, 0.5, 0.6, 0.9, 0.8, 1.0 };
         MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
         interpolator.addEqualityConstraint(1.0, 0.0);
-        interpolator.addEqualityConstraint(6.0, 1.0);
-        interpolator.addGradientEqualityConstraint(3.5, 0.4567);
+        interpolator.addEqualityConstraint(9.0, 1.0);
+        interpolator.addGradientEqualityConstraint(5.0, 0.321);
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
         testMonotone(s);
         assertThat(s.value(1.0), closeTo(0.0, 1e-9));
-        assertThat(s.value(6.0), closeTo(1.0, 1e-9));
+        assertThat(s.value(9.0), closeTo(1.0, 1e-9));
         PolynomialSplineFunction ds = s.polynomialSplineDerivative();
-        assertThat(ds.value(3.5), closeTo(0.4567, 1e-9));
+        assertThat(ds.value(5.0), closeTo(0.321, 1e-9));
     }
 }
