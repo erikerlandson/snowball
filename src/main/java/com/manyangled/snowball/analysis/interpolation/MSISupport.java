@@ -255,27 +255,49 @@ class MSISupport {
         double xmin,
         double xmax,
         double[] xC,
-        double[] yC) {
-        int n = xC.length;
+        double[] yC,
+        double[] xgC,
+        double[] ygC) {
+        int n = xC.length + xgC.length;
         int M = K.length;
         double[][] A = new double[n][M];
         double[] b = new double[n];
-        for (int j = 0; j < n; ++j) {
+        int jA = 0;
+        for (int j = 0; j < xC.length; ++j) {
             double x = xC[j];
             if ((x < xmin) || (x > xmax))
                 throw new IllegalArgumentException("equality constraint declared outside the interpolation domain");
             int q = queryKj(x, K);
             assert q >= 3;
             double t = alpha * (x - K[q]);
-            b[j] = yC[j];
+            b[jA] = yC[j];
             int z = q - 3;
-            for (int k = 0; k < z; ++k) A[j][k] = 0.0;
+            for (int k = 0; k < z; ++k) A[jA][k] = 0.0;
             // http://erikerlandson.github.io/blog/2018/09/08/equality-constraints-for-cubic-b-splines/
-            A[j][q - 3] = (1.0 - (3.0 * t) + (3.0 * t * t) - (t * t * t)) / 6.0;
-            A[j][q - 2] = (4.0 - (6.0 * t * t) + (3.0 * t * t * t)) / 6.0;
-            A[j][q - 1] = (1.0 + (3.0 * t) + (3.0 * t * t) - (3.0 * t * t * t)) / 6.0;
-            A[j][q]     = (t * t * t) / 6.0;
-            for (int k = q + 1; k < M; ++k) A[j][k] = 0.0;
+            A[jA][q - 3] = (1.0 - (3.0 * t) + (3.0 * t * t) - (t * t * t)) / 6.0;
+            A[jA][q - 2] = (4.0 - (6.0 * t * t) + (3.0 * t * t * t)) / 6.0;
+            A[jA][q - 1] = (1.0 + (3.0 * t) + (3.0 * t * t) - (3.0 * t * t * t)) / 6.0;
+            A[jA][q]     = (t * t * t) / 6.0;
+            for (int k = q + 1; k < M; ++k) A[jA][k] = 0.0;
+            ++jA;
+        }
+        for (int j = 0; j < xgC.length; ++j) {
+            double x = xgC[j];
+            if ((x < xmin) || (x > xmax))
+                throw new IllegalArgumentException("equality constraint declared outside the interpolation domain");
+            int q = queryKj(x, K);
+            assert q >= 3;
+            double t = alpha * (x - K[q]);
+            b[jA] = ygC[j];
+            int z = q - 3;
+            for (int k = 0; k < z; ++k) A[jA][k] = 0.0;
+            // http://erikerlandson.github.io/blog/2018/09/08/equality-constraints-for-cubic-b-splines/
+            A[jA][q - 3] = alpha * (-3.0 + (6.0 * t) - (3.0 * t * t)) / 6.0;
+            A[jA][q - 2] = alpha * ((-12.0 * t) + (9.0 * t * t)) / 6.0;
+            A[jA][q - 1] = alpha * (3.0 + (6.0 * t) - (9.0 * t * t)) / 6.0;
+            A[jA][q]     = alpha * (3.0 * t * t) / 6.0;
+            for (int k = q + 1; k < M; ++k) A[jA][k] = 0.0;
+            ++jA;
         }
         return new LinearEqualityConstraint(new Array2DRowRealMatrix(A, false), new ArrayRealVector(b, false));
     }
@@ -289,7 +311,9 @@ class MSISupport {
         double lambda,
         double[] w,
         double[] xC,
-        double[] yC
+        double[] yC,
+        double[] xgC,
+        double[] ygC
     ) {
         final double alpha = (double)m / (xmax - xmin);
         final int M = m + 3;
@@ -298,8 +322,8 @@ class MSISupport {
 
         ArrayList<OptimizationData> optArgs = new ArrayList<OptimizationData>();
 
-        if (xC.length > 0) {
-            LinearEqualityConstraint eqc = linearEqualityConstraint(K, alpha, xmin, xmax, xC, yC);
+        if ((xC.length + xgC.length) > 0) {
+            LinearEqualityConstraint eqc = linearEqualityConstraint(K, alpha, xmin, xmax, xC, yC, xgC, ygC);
             optArgs.add(eqc);
         }
 

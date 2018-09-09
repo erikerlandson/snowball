@@ -73,4 +73,32 @@ public class MonotonicSplineTest {
         assertThat(s.value(1.0), closeTo(0.0, 1e-9));
         assertThat(s.value(6.0), closeTo(1.0, 1e-9));
     }
+
+    @Test
+    public void testGradientConstraint1() {
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
+        interpolator.addGradientEqualityConstraint(3.5, 2.0);
+        PolynomialSplineFunction s = interpolator.interpolate(x, y);
+        testMonotone(s);
+        PolynomialSplineFunction ds = s.polynomialSplineDerivative();
+        assertThat(ds.value(3.5), closeTo(2.0, 1e-9));
+    }
+
+    @Test
+    public void testGradientConstraint2() {
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
+        interpolator.addEqualityConstraint(1.0, 0.0);
+        interpolator.addEqualityConstraint(6.0, 1.0);
+        interpolator.addGradientEqualityConstraint(3.5, 0.4567);
+        PolynomialSplineFunction s = interpolator.interpolate(x, y);
+        testMonotone(s);
+        assertThat(s.value(1.0), closeTo(0.0, 1e-9));
+        assertThat(s.value(6.0), closeTo(1.0, 1e-9));
+        PolynomialSplineFunction ds = s.polynomialSplineDerivative();
+        assertThat(ds.value(3.5), closeTo(0.4567, 1e-9));
+    }
 }

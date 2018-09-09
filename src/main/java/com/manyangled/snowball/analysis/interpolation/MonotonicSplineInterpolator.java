@@ -30,6 +30,8 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private double xmax = Double.NaN;
     private ArrayList<Double> constraintX = new ArrayList<Double>();
     private ArrayList<Double> constraintY = new ArrayList<Double>();
+    private ArrayList<Double> gConstraintX = new ArrayList<Double>();
+    private ArrayList<Double> gConstraintY = new ArrayList<Double>();
 
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         final int n = x.length;
@@ -60,8 +62,15 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             xC[j] = constraintX.get(j);
             yC[j] = constraintY.get(j);
         }
+        nC = gConstraintX.size();
+        double[] xgC = new double[nC];
+        double[] ygC = new double[nC];
+        for (int j = 0; j < nC; ++j) {
+            xgC[j] = gConstraintX.get(j);
+            ygC[j] = gConstraintY.get(j);
+        }
 
-        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC);
+        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC, xgC, ygC);
     }
 
     public void setM(int m) {
@@ -93,6 +102,14 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     public void addEqualityConstraint(double x, double y) {
         constraintX.add(x);
         constraintY.add(y);
+    }
+
+    public void addGradientEqualityConstraint(double x, double dydx) {
+        // If and when I support monotone decreasing I'll need to defer this check.
+        if (dydx < 0.0)
+            throw new IllegalArgumentException("dydx cannot be negative for monotone spline fitting");
+        gConstraintX.add(x);
+        gConstraintY.add(dydx);
     }
 
     public static final double LAMBDA_DEFAULT = 1.0;
