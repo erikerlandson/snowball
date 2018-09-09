@@ -87,6 +87,9 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     /**
      * Set the number of piecewise polynomial intervals over the interpolation domain.
      * @param m the number of piecewise intervals.
+     * <p>
+     * NOTE: m is currently required to be &ge; 4, due to internal numeric considerations.
+     * m is also expected to be &le; the number of data points provided for interpolation.
      */
     public void setM(int m) {
         if (m < M_MINIMUM)
