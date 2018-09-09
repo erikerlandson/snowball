@@ -13,12 +13,16 @@ limitations under the License.
 
 package com.manyangled.snowball.analysis.interpolation;
 
+import java.util.ArrayList;
+import static java.util.Arrays.binarySearch;
+
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 
+import org.apache.commons.math3.optim.OptimizationData;
 import org.apache.commons.math3.optim.PointValuePair;
 import org.apache.commons.math3.optim.InitialGuess;
 import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
@@ -30,6 +34,8 @@ import static com.manyangled.gibbous.optim.convex.ConvexOptimizer.feasiblePoint;
 import com.manyangled.gibbous.optim.convex.BarrierOptimizer;
 import com.manyangled.gibbous.optim.convex.QuadraticFunction;
 import com.manyangled.gibbous.optim.convex.LinearInequalityConstraint;
+import com.manyangled.gibbous.optim.convex.LinearEqualityConstraint;
+import com.manyangled.gibbous.optim.convex.SVDSchurKKTSolver;
 
 import com.manyangled.gibbous.optim.convex.QuadraticFunction;
 import com.manyangled.gibbous.optim.convex.LinearInequalityConstraint;
@@ -233,6 +239,47 @@ class MSISupport {
         return c;
     }
 
+    public static int queryKj(double x, double[] K) {
+        int j = binarySearch(K, x);
+        if (j < 0) j = -(j + 2);
+        if ((j < 0) || (j >= K.length))
+            throw new IndexOutOfBoundsException("binary search landed outside of array");
+        assert x >= K[j];
+        if ((j + 1) < K.length) assert x < K[j + 1];
+        return j;
+    }
+
+    public static LinearEqualityConstraint linearEqualityConstraint(
+        double[] K,
+        double alpha,
+        double xmin,
+        double xmax,
+        double[] xC,
+        double[] yC) {
+        int n = xC.length;
+        int M = K.length;
+        double[][] A = new double[n][M];
+        double[] b = new double[n];
+        for (int j = 0; j < n; ++j) {
+            double x = xC[j];
+            if ((x < xmin) || (x > xmax))
+                throw new IllegalArgumentException("equality constraint declared outside the interpolation domain");
+            int q = queryKj(x, K);
+            assert q >= 3;
+            double t = alpha * (x - K[q]);
+            b[j] = yC[j];
+            int z = q - 3;
+            for (int k = 0; k < z; ++k) A[j][k] = 0.0;
+            // http://erikerlandson.github.io/blog/2018/09/08/equality-constraints-for-cubic-b-splines/
+            A[j][q - 3] = (1.0 - (3.0 * t) + (3.0 * t * t) - (t * t * t)) / 6.0;
+            A[j][q - 2] = (4.0 - (6.0 * t * t) + (3.0 * t * t * t)) / 6.0;
+            A[j][q - 1] = (1.0 + (3.0 * t) + (3.0 * t * t) - (3.0 * t * t * t)) / 6.0;
+            A[j][q]     = (t * t * t) / 6.0;
+            for (int k = q + 1; k < M; ++k) A[j][k] = 0.0;
+        }
+        return new LinearEqualityConstraint(new Array2DRowRealMatrix(A, false), new ArrayRealVector(b, false));
+    }
+
     public static PolynomialSplineFunction fitMonotoneSpline(
         double[] x,
         double[] y,
@@ -240,26 +287,41 @@ class MSISupport {
         double xmin,
         double xmax,
         double lambda,
-        double[] w
+        double[] w,
+        double[] xC,
+        double[] yC
     ) {
         final double alpha = (double)m / (xmax - xmin);
         final int M = m + 3;
-        final double[] tk = new double[M];
-        for (int j = -3; j < m; ++j) tk[3+j] = xmin + ((double)j / alpha);
+        final double[] K = new double[M];
+        for (int j = -3; j < m; ++j) K[3+j] = xmin + ((double)j / alpha);
 
-        QuadraticFunction qf = quadraticObjective(x, y, tk, w, lambda, alpha);
+        ArrayList<OptimizationData> optArgs = new ArrayList<OptimizationData>();
+
+        if (xC.length > 0) {
+            LinearEqualityConstraint eqc = linearEqualityConstraint(K, alpha, xmin, xmax, xC, yC);
+            optArgs.add(eqc);
+        }
+
         LinearInequalityConstraint monotone = monotoneConstraints(m, M);
+        optArgs.add(monotone);
 
-        PointValuePair fpvp = feasiblePoint(monotone);
+        // Equality constraints seem to be producing positive-semi-definite matrix
+        // and Cholesky solver isn't kidding about wanting strict positive definite.
+        // I'm guessing that the hyperplanar constraints are reducing the rank.
+        // SVD was born to solvev matrices of less than full rank, and seems to be working.
+        optArgs.add(new SVDSchurKKTSolver());
+
+        PointValuePair fpvp = feasiblePoint(optArgs.toArray(new OptimizationData[0]));
         if (fpvp.getSecond() >= 0.0)
             throw new RuntimeException("Unable to find an initial point in the feasible region");
         double[] ig = fpvp.getFirst();
-        
-        BarrierOptimizer barrier = new BarrierOptimizer();
-        PointValuePair pvp = barrier.optimize(
-            new ObjectiveFunction(qf),
-            monotone,
-            new InitialGuess(ig));
+
+        QuadraticFunction qf = quadraticObjective(x, y, K, w, lambda, alpha);
+        optArgs.add(new ObjectiveFunction(qf));
+        optArgs.add(new InitialGuess(ig));
+
+        PointValuePair pvp = (new BarrierOptimizer()).optimize(optArgs.toArray(new OptimizationData[0]));
 
         double[] tau = pvp.getFirst();
         return polynomialSplineFunction(tau, alpha, xmin);

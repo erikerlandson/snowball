@@ -13,6 +13,8 @@ limitations under the License.
 
 package com.manyangled.snowball.analysis.interpolation;
 
+import java.util.ArrayList;
+
 import org.apache.commons.math3.exception.DimensionMismatchException;
 
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
@@ -26,6 +28,8 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private double[] w = null;
     private double xmin = Double.NaN;
     private double xmax = Double.NaN;
+    private ArrayList<Double> constraintX = new ArrayList<Double>();
+    private ArrayList<Double> constraintY = new ArrayList<Double>();
 
     public PolynomialSplineFunction interpolate(double x[], double y[]) {
         final int n = x.length;
@@ -49,8 +53,15 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             xmax = z;
         }
         if (xmax <= xmin) throw new IllegalArgumentException("xMin must be < xMax");
-        
-        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w);
+        int nC = constraintX.size();
+        double[] xC = new double[nC];
+        double[] yC = new double[nC];
+        for (int j = 0; j < nC; ++j) {
+            xC[j] = constraintX.get(j);
+            yC[j] = constraintY.get(j);
+        }
+
+        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC);
     }
 
     public void setM(int m) {
@@ -79,10 +90,14 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         this.w = w;
     }
 
+    public void addEqualityConstraint(double x, double y) {
+        constraintX.add(x);
+        constraintY.add(y);
+    }
+
     public static final double LAMBDA_DEFAULT = 1.0;
 
     public static final int M_DEFAULT = 5;
 
     private static final int M_MINIMUM = 4;
-
 }

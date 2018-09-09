@@ -19,6 +19,7 @@ import static org.junit.Assert.assertArrayEquals;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.*;
+import static org.hamcrest.number.IsCloseTo.closeTo;
 
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
@@ -47,5 +48,29 @@ public class MonotonicSplineTest {
         MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
         testMonotone(s);
+    }
+
+    @Test
+    public void testEqualityConstraint1() {
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
+        interpolator.addEqualityConstraint(3.5, 0.7);
+        PolynomialSplineFunction s = interpolator.interpolate(x, y);
+        testMonotone(s);
+        assertThat(s.value(3.5), closeTo(0.7, 1e-9));
+    }
+
+    @Test
+    public void testEqualityConstraint2() {
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+        double[] y = { 0.0, 0.3, 0.6, 0.5, 0.7, 1.0 };
+        MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
+        interpolator.addEqualityConstraint(1.0, 0.0);
+        interpolator.addEqualityConstraint(6.0, 1.0);
+        PolynomialSplineFunction s = interpolator.interpolate(x, y);
+        testMonotone(s);
+        assertThat(s.value(1.0), closeTo(0.0, 1e-9));
+        assertThat(s.value(6.0), closeTo(1.0, 1e-9));
     }
 }
