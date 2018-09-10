@@ -44,7 +44,17 @@ public class MonotonicSplineTest {
     @Test
     public void test1() {
         double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
-        double[] y = { 0.0, 0.2, 0.1, 0.4, 0.5, 0.6, 0.9, 0.8, 1.0 };
+        double[] y = { 0.0, 0.05, 0.02, 0.3, 0.5, 0.7, 0.99, 0.95, 1.0 };
+        MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
+        PolynomialSplineFunction s = interpolator.interpolate(x, y);
+        testMonotone(s);
+    }
+
+    @Test
+    public void test2() {
+        // These data turned up a subtle bug in gibbous-0.1.0 that is fixed in gibbous-0.1.1
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+        double[] y = { 0.0, 0.15, 0.05, 0.3, 0.5, 0.7, 0.95, 0.98, 1.0 };
         MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
         testMonotone(s);
