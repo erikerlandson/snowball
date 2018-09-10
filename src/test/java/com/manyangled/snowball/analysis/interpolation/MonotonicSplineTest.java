@@ -14,6 +14,8 @@ limitations under the License.
 package com.manyangled.snowball.analysis.interpolation;
 
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 
@@ -40,6 +42,9 @@ public class MonotonicSplineTest {
             xprv = x;
         }
     }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void test1() {
@@ -110,5 +115,17 @@ public class MonotonicSplineTest {
         assertThat(s.value(9.0), closeTo(1.0, 1e-9));
         PolynomialSplineFunction ds = s.polynomialSplineDerivative();
         assertThat(ds.value(5.0), closeTo(0.321, 1e-9));
+    }
+
+    @Test
+    public void testInterpOptions() {
+        double[] x = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+        double[] y = { 0.0, 0.05, 0.02, 0.3, 0.5, 0.7, 0.99, 0.95, 1.0 };
+        MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
+        interpolator.addInterpolationOptions(new org.apache.commons.math3.optim.MaxIter(1));
+        // Very small max iterations setting should be passed into fitting and cause an exception
+        // when the optimization exceeds that number of iterations:
+        thrown.expect(org.apache.commons.math3.exception.TooManyIterationsException.class);
+        PolynomialSplineFunction s = interpolator.interpolate(x, y);
     }
 }
