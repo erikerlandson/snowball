@@ -15,8 +15,8 @@ The `snowball` package is implemented in java, and so it can be used in both jav
 resolvers += "manyangled" at "https://dl.bintray.com/manyangled/maven/"
 
 libraryDependencies ++= Seq(
-  "com.manyangled" % "snowball" % "0.1.0",
-  "com.manyangled" % "gibbous" % "0.1.0",
+  "com.manyangled" % "snowball" % "0.1.1",
+  "com.manyangled" % "gibbous" % "0.1.1",
   "org.apache.commons" % "commons-math3" % "3.6.1")
 ```
 
