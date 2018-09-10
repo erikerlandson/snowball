@@ -313,14 +313,25 @@ class MSISupport {
         double[] xC,
         double[] yC,
         double[] xgC,
-        double[] ygC
-    ) {
+        double[] ygC,
+        ArrayList<OptimizationData> fitOpts)
+    {
         final double alpha = (double)m / (xmax - xmin);
         final int M = m + 3;
         final double[] K = new double[M];
         for (int j = -3; j < m; ++j) K[3+j] = xmin + ((double)j / alpha);
 
         ArrayList<OptimizationData> optArgs = new ArrayList<OptimizationData>();
+
+        // Equality constraints seem to be producing positive-semi-definite matrix
+        // and Cholesky solver isn't kidding about wanting strict positive definite.
+        // I'm guessing that the hyperplanar constraints are reducing the rank.
+        // SVD was born to solvev matrices of less than full rank, and seems to be working.
+        optArgs.add(new SVDSchurKKTSolver());
+
+        // include user supplied options
+        // Any options I add after this will override any user settings.
+        optArgs.addAll(fitOpts);
 
         if ((xC.length + xgC.length) > 0) {
             LinearEqualityConstraint eqc = linearEqualityConstraint(K, alpha, xmin, xmax, xC, yC, xgC, ygC);
@@ -329,12 +340,6 @@ class MSISupport {
 
         LinearInequalityConstraint monotone = monotoneConstraints(m, M);
         optArgs.add(monotone);
-
-        // Equality constraints seem to be producing positive-semi-definite matrix
-        // and Cholesky solver isn't kidding about wanting strict positive definite.
-        // I'm guessing that the hyperplanar constraints are reducing the rank.
-        // SVD was born to solvev matrices of less than full rank, and seems to be working.
-        optArgs.add(new SVDSchurKKTSolver());
 
         PointValuePair fpvp = feasiblePoint(optArgs.toArray(new OptimizationData[0]));
         if (fpvp.getSecond() >= 0.0)

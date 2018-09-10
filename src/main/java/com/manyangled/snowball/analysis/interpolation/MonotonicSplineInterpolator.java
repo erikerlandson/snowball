@@ -17,6 +17,8 @@ import java.util.ArrayList;
 
 import org.apache.commons.math3.exception.DimensionMismatchException;
 
+import org.apache.commons.math3.optim.OptimizationData;
+
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
@@ -35,6 +37,7 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private ArrayList<Double> constraintY = new ArrayList<Double>();
     private ArrayList<Double> gConstraintX = new ArrayList<Double>();
     private ArrayList<Double> gConstraintY = new ArrayList<Double>();
+    private ArrayList<OptimizationData> fitOpts = new ArrayList<OptimizationData>();
 
     /**
      * Given data (x1, y1), (x2, y2)..., fit an interpolating spline that is constrained to be monotonic.
@@ -85,7 +88,7 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             ygC[j] = gConstraintY.get(j);
         }
 
-        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC, xgC, ygC);
+        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC, xgC, ygC, fitOpts);
     }
 
     /**
@@ -160,6 +163,12 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             throw new IllegalArgumentException("dydx cannot be negative for monotone spline fitting");
         gConstraintX.add(x);
         gConstraintY.add(dydx);
+    }
+
+    public void addInterpolationOptions(OptimizationData... opts) {
+        for (OptimizationData data: opts) {
+            fitOpts.add(data);
+        }
     }
 
     /** The default value for smoothing parameter lambda */
