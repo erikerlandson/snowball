@@ -165,6 +165,11 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         gConstraintY.add(dydx);
     }
 
+    /**
+     * Pass additional options to the internal interpolation routines.
+     * @param opts options for the interpolation routines. Multiple calls will continue appending options.
+     * The internal fitting routines may override certain core option parameters.
+     */
     public void addInterpolationOptions(OptimizationData... opts) {
         for (OptimizationData data: opts) {
             fitOpts.add(data);
