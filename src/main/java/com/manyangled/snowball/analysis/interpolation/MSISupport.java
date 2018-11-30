@@ -173,7 +173,8 @@ class MSISupport {
     }
 
     public static LinearInequalityConstraint monotoneConstraints(int m, int M) {
-        // negative of Eq(64), because JOptimizer expects constraints of form Hx < 0 instead of Hx >= 0
+        // negative of Eq(64), because barrier method expects constraints of
+        // form Hx < 0 instead of Hx >= 0
         double[] Fm3 = { 1.0, 0.0, -1.0,  0.0 };
         double[] Fm2 = { 1.0, 2.0, -3.0,  0.0 };
         double[] Fm1 = { 0.0, 1.0,  0.0, -1.0 };
