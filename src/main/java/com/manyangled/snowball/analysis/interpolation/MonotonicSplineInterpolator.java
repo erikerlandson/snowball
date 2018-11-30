@@ -37,6 +37,8 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
     private ArrayList<Double> constraintY = new ArrayList<Double>();
     private ArrayList<Double> gConstraintX = new ArrayList<Double>();
     private ArrayList<Double> gConstraintY = new ArrayList<Double>();
+    private ArrayList<Double> ltConstraintX = new ArrayList<Double>();
+    private ArrayList<Double> ltConstraintY = new ArrayList<Double>();
     private ArrayList<OptimizationData> fitOpts = new ArrayList<OptimizationData>();
 
     /**
@@ -87,8 +89,15 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             xgC[j] = gConstraintX.get(j);
             ygC[j] = gConstraintY.get(j);
         }
+        nC = ltConstraintX.size();
+        double[] xltC = new double[nC];
+        double[] yltC = new double[nC];
+        for (int j = 0; j < nC; ++j) {
+            xltC[j] = ltConstraintX.get(j);
+            yltC[j] = ltConstraintY.get(j);
+        }
 
-        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC, xgC, ygC, fitOpts);
+        return fitMonotoneSpline(x, y, m, xmin, xmax, lambda, w, xC, yC, xgC, ygC, xltC, yltC, fitOpts);
     }
 
     /**
@@ -163,6 +172,16 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
             throw new IllegalArgumentException("dydx cannot be negative for monotone spline fitting");
         gConstraintX.add(x);
         gConstraintY.add(dydx);
+    }
+
+    public void addLessThanConstraint(double x, double y) {
+        ltConstraintX.add(x);
+        ltConstraintY.add(y);
+    }
+
+    public void addGreaterThanConstraint(double x, double y) {
+        ltConstraintX.add(-x);
+        ltConstraintY.add(-y);
     }
 
     /**

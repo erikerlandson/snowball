@@ -303,6 +303,16 @@ class MSISupport {
         return new LinearEqualityConstraint(new Array2DRowRealMatrix(A, false), new ArrayRealVector(b, false));
     }
 
+    public static LinearInequalityConstraint linearInequalityConstraint(
+        double[] K,
+        double alpha,
+        double xmin,
+        double xmax,
+        double[] xltC,
+        double[] yltC) {
+        return null;
+    }
+
     public static PolynomialSplineFunction fitMonotoneSpline(
         double[] x,
         double[] y,
@@ -315,6 +325,8 @@ class MSISupport {
         double[] yC,
         double[] xgC,
         double[] ygC,
+        double[] xltC,
+        double[] yltC,
         ArrayList<OptimizationData> fitOpts)
     {
         final double alpha = (double)m / (xmax - xmin);
@@ -337,6 +349,11 @@ class MSISupport {
         if ((xC.length + xgC.length) > 0) {
             LinearEqualityConstraint eqc = linearEqualityConstraint(K, alpha, xmin, xmax, xC, yC, xgC, ygC);
             optArgs.add(eqc);
+        }
+
+        if (xltC.length > 0) {
+            LinearInequalityConstraint iqc = linearInequalityConstraint(K, alpha, xmin, xmax, xltC, yltC);
+            optArgs.add(iqc);
         }
 
         LinearInequalityConstraint monotone = monotoneConstraints(m, M);
