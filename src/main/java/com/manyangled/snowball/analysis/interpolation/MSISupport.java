@@ -309,8 +309,29 @@ class MSISupport {
         double xmin,
         double xmax,
         double[] xltC,
-        double[] yltC) {
-        return null;
+        double[] yltC,
+        double[] ltCF) {
+        int n = xltC.length;
+        int M = K.length;
+        double[][] A = new double[n][M];
+        double[] b = new double[n];
+        for (int j = 0; j < n; ++j) {
+            double x = xltC[j];
+            if ((x < xmin) || (x > xmax))
+                throw new IllegalArgumentException("equality constraint declared outside the interpolation domain");
+            int q = queryKj(x, K);
+            assert q >= 3;
+            double t = alpha * (x - K[q]);
+            b[j] = ltCF[j] * yltC[j];
+            int z = q - 3;
+            for (int k = 0; k < z; ++k) A[j][k] = 0.0;
+            A[j][q - 3] = ltCF[j] * (1.0 - (3.0 * t) + (3.0 * t * t) - (t * t * t)) / 6.0;
+            A[j][q - 2] = ltCF[j] * (4.0 - (6.0 * t * t) + (3.0 * t * t * t)) / 6.0;
+            A[j][q - 1] = ltCF[j] * (1.0 + (3.0 * t) + (3.0 * t * t) - (3.0 * t * t * t)) / 6.0;
+            A[j][q]     = ltCF[j] * (t * t * t) / 6.0;
+            for (int k = q + 1; k < M; ++k) A[j][k] = 0.0;
+        }
+        return new LinearInequalityConstraint(new Array2DRowRealMatrix(A, false), new ArrayRealVector(b, false));
     }
 
     public static PolynomialSplineFunction fitMonotoneSpline(
@@ -327,6 +348,7 @@ class MSISupport {
         double[] ygC,
         double[] xltC,
         double[] yltC,
+        double[] ltCF,
         ArrayList<OptimizationData> fitOpts)
     {
         final double alpha = (double)m / (xmax - xmin);
@@ -352,7 +374,7 @@ class MSISupport {
         }
 
         if (xltC.length > 0) {
-            LinearInequalityConstraint iqc = linearInequalityConstraint(K, alpha, xmin, xmax, xltC, yltC);
+            LinearInequalityConstraint iqc = linearInequalityConstraint(K, alpha, xmin, xmax, xltC, yltC, ltCF);
             optArgs.add(iqc);
         }
 
