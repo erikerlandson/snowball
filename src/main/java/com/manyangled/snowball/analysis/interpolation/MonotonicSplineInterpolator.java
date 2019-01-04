@@ -177,12 +177,22 @@ public class MonotonicSplineInterpolator implements UnivariateInterpolator {
         gConstraintY.add(dydx);
     }
 
+    /**
+     * Add an inequality constraint to the interpolation of the form s(x) &lt; y
+     * @param x the x value of the inequality constraint
+     * @param y the upper bound of the constraint
+     */
     public void addLessThanConstraint(double x, double y) {
         ltConstraintX.add(x);
         ltConstraintY.add(y);
         ltConstraintF.add(1.0);
     }
 
+    /**
+     * Add an inequality constraint to the interpolation of the form s(x) &gt; y
+     * @param x the x value of the inequality constraint
+     * @param y the lower bound of the constraint
+     */
     public void addGreaterThanConstraint(double x, double y) {
         ltConstraintX.add(x);
         ltConstraintY.add(y);
