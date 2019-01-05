@@ -13,6 +13,7 @@ A few examples are below.
 * Fit monotonic interpolating splines to data, including data that has noise or is otherwise non-monotonic.
 * Enforce equality constraints of the form s(x) = y, where s is the spline function
 * Enforce gradient constraints of the form ds(x)/dx = g
+* Enforce inequality constraints of the form s(x) < y and s(x) > y
 
 ### How to use `snowball` in your project
 The `snowball` package is implemented in java, and so it can be used in both java and scala. It is built on, and designed to work with, Apache Commons Math 3.6
@@ -23,8 +24,8 @@ The `snowball` package is implemented in java, and so it can be used in both jav
 resolvers += "manyangled" at "https://dl.bintray.com/manyangled/maven/"
 
 libraryDependencies ++= Seq(
-  "com.manyangled" % "snowball" % "0.1.1",
-  "com.manyangled" % "gibbous" % "0.1.1",
+  "com.manyangled" % "snowball" % "0.2.0",
+  "com.manyangled" % "gibbous" % "0.2.0",
   "org.apache.commons" % "commons-math3" % "3.6.1")
 ```
 
