@@ -24,6 +24,8 @@ import static org.hamcrest.number.OrderingComparison.*;
 import static org.hamcrest.number.IsCloseTo.closeTo;
 
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math3.optim.MaxIter;
+import org.apache.commons.math3.optim.OptimizationData;
 
 public class MonotonicSplineTest {
     public static void testMonotone(PolynomialSplineFunction s) {
@@ -165,5 +167,30 @@ public class MonotonicSplineTest {
         // when the optimization exceeds that number of iterations:
         thrown.expect(org.apache.commons.math3.exception.TooManyIterationsException.class);
         PolynomialSplineFunction s = interpolator.interpolate(x, y);
+    }
+
+    @Test
+    public void testReproData1() {
+        // this setup caused an infinite loop on v0.2.0 of snowball and gibbous
+        double[] x = { 2.417586222325241E-6, 0.01833989628165254, 0.03881204328343747, 0.06027210493545283, 0.08641191222046411, 0.08920708170338688, 0.11856432752175541, 0.1271093283793493, 0.15611716035693607, 0.17812340282854217, 0.2003336549968174, 0.21010068304660953, 0.24461903435787338, 0.25330687443961475, 0.2938177183897125, 0.3087980028802898, 0.3234689455608389, 0.3234689455608389, 0.3234689455608389, 0.3874888123642846, 0.4037770547454288, 0.4037770547454288, 0.4451537836690316, 0.45466841689883003, 0.4922791775622433, 0.5049112468735633, 0.5097110552769382, 0.542354984673194, 0.5625051862341103, 0.5812081076929951, 0.5812081076929951, 0.624748141181579, 0.6457634498888773, 0.649465590009825, 0.6792874416836917, 0.7015743319002873, 0.7250186518350656, 0.7257475192866188, 0.7638636260578827, 0.7751265901018766, 0.7751265901018766, 0.8204162734846717, 0.844432325829453, 0.8621117530632927, 0.8621117530632927, 0.8984423523978251, 0.9137609097873816, 0.9453317721241555, 0.9532748155064319, 0.9794713197145162, 0.9999049187132192 };
+        double[] y = { 0.0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2, 0.22, 0.24, 0.26, 0.28, 0.3, 0.32, 0.34, 0.36, 0.38, 0.4, 0.42, 0.44, 0.46, 0.48, 0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7000000000000001, 0.72, 0.74, 0.76, 0.78, 0.8, 0.8200000000000001, 0.84, 0.86, 0.88, 0.9, 0.92, 0.9400000000000001, 0.96, 0.98, 1.0 };
+
+        double xmin = x[0];
+        double xmax = x[x.length - 1];
+        double eps = 1e-9;
+
+        MonotonicSplineInterpolator interpolator = new MonotonicSplineInterpolator();
+        interpolator.setBounds(xmin, xmax);
+        interpolator.setM(20);
+        interpolator.addEqualityConstraint(xmin, eps);
+        interpolator.addGreaterThanConstraint(xmin, 0.0);
+        interpolator.addEqualityConstraint(xmax, 1.0 - eps);
+        interpolator.addLessThanConstraint(xmax, 1.0);
+        interpolator.addInterpolationOptions(new MaxIter(25));
+
+        PolynomialSplineFunction s = interpolator.interpolate(x, y);
+        testMonotone(s);
+        assertThat(s.value(xmin), closeTo(0.0, 1e-8));
+        assertThat(s.value(xmax), closeTo(1.0, 1e-8));
     }
 }
