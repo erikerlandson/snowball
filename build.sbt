@@ -2,7 +2,7 @@ name := "snowball"
 
 organization := "com.manyangled"
 
-version := "0.2.0"
+version := "0.2.2-SNAPSHOT"
 
 //publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
 
