@@ -299,16 +299,16 @@ public class MonotonicSplineTest {
 
     @Test
     public void testSplineTrialsUniform() {
-        splineTrials(new UniformRealDistribution(), 1000, 50);
+        splineTrials(new UniformRealDistribution(), 100, 50);
     }
 
     @Test
     public void testSplineTrialsNormal() {
-        splineTrials(new NormalDistribution(), 1000, 50);
+        splineTrials(new NormalDistribution(), 100, 50);
     }
 
     @Test
     public void testSplineTrialsGamma() {
-        splineTrials(new GammaDistribution(1.0, 1.0), 1000, 50);
+        splineTrials(new GammaDistribution(1.0, 1.0), 100, 50);
     }
 }
