@@ -2,7 +2,7 @@ name := "snowball"
 
 organization := "com.manyangled"
 
-version := "0.2.2-SNAPSHOT"
+version := "0.2.3-SNAPSHOT"
 
 //publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
 
@@ -17,7 +17,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-math3" % "3.6.1" % Provided,
-  "com.manyangled" % "gibbous" % "0.2.1" % Provided,
+  "com.manyangled" % "gibbous" % "0.2.2" % Provided,
   "com.manyangled" %% "gnuplot4s" % "0.1.0" % Test,
   "org.hamcrest" % "hamcrest-library" % "1.3" % Test,
   "com.novocode" % "junit-interface" % "0.11" % Test
