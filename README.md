@@ -20,6 +20,7 @@ The `snowball` package is implemented in java, and so it can be used in both jav
 
 `snowball` expects you to provide `commons-math3` and `gibbous` dependencies, as shown here:
 
+#### using SBT
 ```scala
 resolvers += "manyangled" at "https://dl.bintray.com/manyangled/maven/"
 
@@ -27,6 +28,27 @@ libraryDependencies ++= Seq(
   "com.manyangled" % "snowball" % "0.2.2",
   "com.manyangled" % "gibbous" % "0.2.2",
   "org.apache.commons" % "commons-math3" % "3.6.1")
+```
+#### using maven
+```xml
+<dependency>
+  <groupId>com.manyangled</groupId>
+  <artifactId>snowball</artifactId>
+  <version>0.2.2</version>
+  <type>pom</type>
+</dependency>
+<dependency>
+  <groupId>com.manyangled</groupId>
+  <artifactId>gibbous</artifactId>
+  <version>0.2.2</version>
+  <type>pom</type>
+</dependency>
+<dependency>
+  <groupId>org.apache.commons</groupId>
+  <artifactId>commons-math3</artifactId>
+  <version>3.6.1</version>
+  <type>pom</type>
+</dependency>
 ```
 
 ### Examples
