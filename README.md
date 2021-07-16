@@ -16,37 +16,27 @@ A few examples are below.
 * Enforce inequality constraints of the form s(x) < y and s(x) > y
 
 ### How to use `snowball` in your project
-The `snowball` package is implemented in java, and so it can be used in both java and scala. It is built on, and designed to work with, Apache Commons Math 3.6
-
-`snowball` expects you to provide `commons-math3` and `gibbous` dependencies, as shown here:
+The `snowball` package is implemented in java, and so it can be used in both java and scala. It is built on, and designed to work with, Apache Commons Math 3.6.
 
 #### using SBT
 ```scala
-resolvers += "manyangled" at "https://dl.bintray.com/manyangled/maven/"
-
 libraryDependencies ++= Seq(
-  "com.manyangled" % "snowball" % "0.2.2",
-  "com.manyangled" % "gibbous" % "0.2.2",
-  "org.apache.commons" % "commons-math3" % "3.6.1")
+  "com.manyangled" % "snowball" % "0.3.0"
+  )
 ```
+
 #### using maven
 ```xml
 <dependency>
   <groupId>com.manyangled</groupId>
   <artifactId>snowball</artifactId>
-  <version>0.2.2</version>
+  <version>0.3.0</version>
   <type>pom</type>
 </dependency>
 <dependency>
   <groupId>com.manyangled</groupId>
   <artifactId>gibbous</artifactId>
-  <version>0.2.2</version>
-  <type>pom</type>
-</dependency>
-<dependency>
-  <groupId>org.apache.commons</groupId>
-  <artifactId>commons-math3</artifactId>
-  <version>3.6.1</version>
+  <version>0.3.0</version>
   <type>pom</type>
 </dependency>
 ```
@@ -65,6 +55,10 @@ PolynomialSplineFunction s = interpolator.interpolate(x, y);
 ```
 
 #### Scala REPL
+```sh
+$ sbt test:console
+```
+
 ```scala
 scala> import com.manyangled.snowball.analysis.interpolation._, com.manyangled.gnuplot4s._
 import com.manyangled.snowball.analysis.interpolation._
