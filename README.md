@@ -55,6 +55,10 @@ PolynomialSplineFunction s = interpolator.interpolate(x, y);
 ```
 
 #### Scala REPL
+```sh
+$ sbt test:console
+```
+
 ```scala
 scala> import com.manyangled.snowball.analysis.interpolation._, com.manyangled.gnuplot4s._
 import com.manyangled.snowball.analysis.interpolation._
